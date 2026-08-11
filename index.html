@@ -3,34 +3,138 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Project Dashboard</title>
+<meta name="description" content="Project dashboard of Rushikesh Kaotekwar: software and finance engineering work." />
+<title>Rushikesh Kaotekwar &middot; Project Dashboard</title>
 <link rel="stylesheet" href="styles.css" />
+<script>
+  // Set the theme before first paint so there is no flash of the wrong theme.
+  (function () {
+    var saved = localStorage.getItem('theme');
+    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.dataset.theme = saved || (prefersDark ? 'dark' : 'light');
+  })();
+</script>
 </head>
 <body>
-  <header class="site-header">
-    <div class="header-inner">
-      <div>
-        <h1>Rushikesh Kaotekwar</h1>
-        <p class="subtitle">Project Dashboard: built for interview review and ongoing learning</p>
+
+<a class="skip-link" href="#work">Skip to projects</a>
+
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a class="brand" href="#top">
+      <span class="brand-mark">RK</span>
+      <span class="brand-text">Rushikesh Kaotekwar</span>
+    </a>
+    <div class="nav-links">
+      <a href="#work">Work</a>
+      <a href="#stack">Stack</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle color theme">
+      <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.2" />
+        <g stroke-linecap="round">
+          <path d="M12 2.4v2.4M12 19.2v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.4 12h2.4M19.2 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7" />
+        </g>
+      </svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+        <path d="M20 14.2A8.2 8.2 0 0 1 9.8 4a8.4 8.4 0 1 0 10.2 10.2z" />
+      </svg>
+    </button>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="hero-bg" aria-hidden="true">
+    <div class="hero-gradient"></div>
+    <div class="hero-grid"></div>
+  </div>
+  <div class="hero-inner">
+    <div class="eyebrow reveal">
+      <span class="pulse-dot"></span>
+      Open to software and quant engineering roles
+    </div>
+    <h1 class="reveal">
+      Learning out loud,<br />
+      <span class="gradient-text">shipping in public.</span>
+    </h1>
+    <p class="lede reveal">
+      A living record of what I build. Every project here started as something I did not know how to do yet.
+      Weighted toward financial systems, market data, and the infrastructure underneath them.
+    </p>
+    <div class="hero-actions reveal">
+      <a class="btn btn-primary" href="#work">
+        Browse the work
+        <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4 10h11M11 6l4 4-4 4" /></svg>
+      </a>
+      <a class="btn btn-ghost" href="#contact">Get in touch</a>
+    </div>
+  </div>
+</header>
+
+<section class="stats-band">
+  <div class="stats-inner" id="stats"></div>
+</section>
+
+<main>
+  <section class="section" id="work">
+    <div class="section-head reveal">
+      <span class="section-tag">Portfolio</span>
+      <h2>Selected projects</h2>
+      <p>Filter by technology or focus area. Select any card for the full breakdown.</p>
+    </div>
+
+    <div class="controls reveal">
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 20 20" width="17" height="17" aria-hidden="true">
+          <circle cx="9" cy="9" r="5.6" /><path d="M13.2 13.2 17 17" stroke-linecap="round" />
+        </svg>
+        <input id="search" type="search" placeholder="Search projects, tools, concepts..." aria-label="Search projects" />
+      </div>
+      <div id="filters" class="filters" role="group" aria-label="Filter by tag"></div>
+    </div>
+
+    <div id="project-grid" class="project-grid" aria-live="polite"></div>
+    <p id="empty-state" class="empty-state" hidden>No projects match that search yet.</p>
+  </section>
+
+  <section class="section" id="stack">
+    <div class="section-head reveal">
+      <span class="section-tag">Toolkit</span>
+      <h2>What I build with</h2>
+      <p>Pulled automatically from the tags across every project.</p>
+    </div>
+    <div id="stack-cloud" class="stack-cloud reveal"></div>
+  </section>
+
+  <section class="cta-band" id="contact">
+    <div class="cta-inner reveal">
+      <h2>Let's talk</h2>
+      <p>Happy to walk through any project here, including the parts that broke first.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="mailto:kaotekwarrushikesh@gmail.com">Email me</a>
+        <a class="btn btn-ghost" href="https://github.com/your-username" target="_blank" rel="noopener noreferrer">GitHub</a>
       </div>
     </div>
-  </header>
+  </section>
+</main>
 
-  <main class="container">
-    <section class="controls">
-      <input id="search" type="search" placeholder="Search projects..." aria-label="Search projects" />
-      <div id="filters" class="filters" role="group" aria-label="Filter by tag"></div>
-    </section>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <span>Built from scratch, no framework.</span>
+    <span>Add a project by editing <code>projects.json</code>, then push.</span>
+  </div>
+</footer>
 
-    <section id="project-grid" class="project-grid" aria-live="polite"></section>
+<div class="modal-backdrop" id="modal-backdrop" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <button class="modal-close" id="modal-close" type="button" aria-label="Close">
+      <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke-linecap="round" /></svg>
+    </button>
+    <div id="modal-body"></div>
+  </div>
+</div>
 
-    <p id="empty-state" class="empty-state" hidden>No projects match your filters yet.</p>
-  </main>
-
-  <footer class="site-footer">
-    <p>To add a project: edit <code>projects.json</code>, then <code>git add</code>, <code>git commit</code>, <code>git push</code>.</p>
-  </footer>
-
-  <script src="app.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
