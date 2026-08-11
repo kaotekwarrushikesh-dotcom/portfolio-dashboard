@@ -1,0 +1,20 @@
+[
+  {
+    "title": "Example: Stock Screener CLI",
+    "description": "A command-line tool that pulls daily price data and screens tickers against custom valuation rules.",
+    "tags": ["Finance", "Python"],
+    "repo": "https://github.com/your-username/stock-screener-cli",
+    "demo": "",
+    "status": "learning",
+    "date": "2026-08-01"
+  },
+  {
+    "title": "Example: Task Tracker API",
+    "description": "REST API for managing tasks, built to practice authentication and database design for interview prep.",
+    "tags": ["Interview", "Node.js", "PostgreSQL"],
+    "repo": "https://github.com/your-username/task-tracker-api",
+    "demo": "",
+    "status": "complete",
+    "date": "2026-07-15"
+  }
+]
