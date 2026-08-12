@@ -1,25 +1,106 @@
 [
   {
-    "title": "Investment Research & Decision Intelligence Platform",
-    "description": "Five-module platform that turns financial statements, market data and filings into a Financial Health Score, DCF/comps valuation, quantified risk, and a source-attributed AI research analyst, ending in a full investment committee memo.",
+    "title": "Financial Statement Intelligence Engine",
+    "description": "Multi-year financial-statement analysis engine that computes profitability, efficiency, leverage and cash-flow-quality ratios, then rolls them into a transparently weighted Financial Health Score.",
     "tags": [
       "Finance",
       "Python",
       "PostgreSQL",
-      "RAG",
-      "Valuation",
-      "Risk"
+      "Pandas"
     ],
     "repo": "",
     "demo": "",
     "status": "planned",
     "date": "2026-08-12",
     "highlights": [
-      "Deterministic financial-statement engine: profitability, efficiency, leverage and cash-flow-quality ratios across multiple years, plus a transparently weighted Financial Health Score, not an arbitrary one.",
-      "DCF built from a component-level WACC (cost of equity, beta, ERP, cost of debt), reconciled against comparable-company multiples, with bull/base/bear scenarios and Monte Carlo valuation distributions.",
-      "Risk engine covering historical, parametric and Monte Carlo VaR, Expected Shortfall, GARCH volatility forecasting, and configurable stress tests (rate shocks, margin compression, market drawdowns).",
-      "AI analyst is retrieval and tool-calling only: it pulls numbers from the financial, valuation and risk engines via controlled tools rather than generating them, and every claim is tagged as sourced data, model output, or interpretation.",
-      "Six-page investment-committee dashboard ending in a BUY/HOLD/SELL memo that states the explicit financial thresholds which would flip the recommendation."
+      "Works across multiple years of income statement, balance sheet and cash-flow data, not a single-year snapshot, so trend direction (margin expansion, ROIC trajectory, debt trend) is the actual output.",
+      "Financial Health Score has a documented, published weighting across profitability, growth, leverage, liquidity, cash generation and returns on capital, deliberately avoiding an unexplained black-box score.",
+      "Automatically flags whether the company's financial position is improving or deteriorating and which specific metrics need further investigation, rather than dumping a ratio table.",
+      "Efficiency metrics (inventory days, receivable days, payable days) roll up into a full cash-conversion-cycle view instead of being reported in isolation.",
+      "Cash-flow-quality checks (CFO/net income, FCF conversion, capex/revenue) catch cases where reported earnings and actual cash generation diverge."
+    ]
+  },
+  {
+    "title": "Institutional-Style Valuation Engine",
+    "description": "DCF built from a component-level WACC, cross-checked against comparable-company multiples, with bull/base/bear scenarios and Monte Carlo valuation distributions instead of a single fair-value number.",
+    "tags": [
+      "Finance",
+      "Python",
+      "Valuation",
+      "Monte Carlo"
+    ],
+    "repo": "",
+    "demo": "",
+    "status": "planned",
+    "date": "2026-08-12",
+    "highlights": [
+      "DCF forecasts revenue growth, margin, D&A, working capital and capex line by line into unlevered free cash flow, not a single-line \"grow revenue X%\" shortcut.",
+      "WACC is derived from its actual components (risk-free rate, beta, equity risk premium, cost of debt, effective tax rate), never hard-coded.",
+      "Comparable-company valuation cross-checks the DCF against peer P/E, EV/EBITDA, EV/Revenue and FCF yield, reporting the premium or discount to peer median.",
+      "Bull/base/bear scenarios and a WACC-vs-terminal-growth sensitivity table show how fragile the fair value actually is to each assumption.",
+      "Monte Carlo valuation treats growth, margin and WACC as distributions rather than fixed points, producing a range of intrinsic value with percentile bands instead of one number."
+    ]
+  },
+  {
+    "title": "Quantitative Risk Engine",
+    "description": "Market and fundamental risk quantified through VaR, Expected Shortfall, GARCH volatility forecasting and configurable stress tests, translating each shock directly into its impact on fair value and share price.",
+    "tags": [
+      "Finance",
+      "Python",
+      "Risk",
+      "VaR",
+      "GARCH"
+    ],
+    "repo": "",
+    "demo": "",
+    "status": "planned",
+    "date": "2026-08-12",
+    "highlights": [
+      "VaR computed three ways (historical, parametric, Monte Carlo) and checked against Expected Shortfall for consistency, rather than reporting one VaR number as if methodology doesn't matter.",
+      "GARCH volatility forecasts are benchmarked against realized volatility and included only where they change the risk read, not added just to look technical.",
+      "A fundamental risk score tracks margin compression, rising net debt/EBITDA and deteriorating interest coverage, kept separate from the market-risk metrics.",
+      "Stress scenarios (revenue shock, margin compression, WACC increase, rate shock, market drawdown) flow straight through into the valuation engine, so a shock shows its real effect on fair value and share price.",
+      "For multi-asset exposure, risk contribution and concentration are broken out per position rather than reported only at the portfolio level."
+    ]
+  },
+  {
+    "title": "AI Financial Research Analyst (RAG)",
+    "description": "A retrieval-augmented research agent that answers investment questions by calling the financial, valuation and risk engines as tools and citing the filing, page and section behind every claim.",
+    "tags": [
+      "Finance",
+      "Python",
+      "LLM",
+      "RAG"
+    ],
+    "repo": "",
+    "demo": "",
+    "status": "planned",
+    "date": "2026-08-12",
+    "highlights": [
+      "The LLM never calculates or invents a financial figure; it calls dedicated financial-statement, valuation and risk tools and reports what they return.",
+      "RAG retrieves the actual annual-report or filing section behind an answer before the model responds, so \"why did margins decline\" is answered from a real disclosure, not a guess.",
+      "Every research response is labeled as source-derived fact, model-derived calculation, or AI interpretation, so a reader knows which parts to trust and which to check.",
+      "Confidence scoring and a data-freshness check let the system say \"insufficient evidence\" instead of producing a fluent but unsupported answer.",
+      "An audit log records what was retrieved and which tools fired for every answer, so a research conclusion can be traced back and reproduced."
+    ]
+  },
+  {
+    "title": "Investment Committee Dashboard",
+    "description": "A six-page decision terminal that turns financial analysis, valuation, risk and AI research into one BUY/HOLD/SELL memo, stating the explicit thresholds that would change the call.",
+    "tags": [
+      "Finance",
+      "Python",
+      "Streamlit"
+    ],
+    "repo": "",
+    "demo": "",
+    "status": "planned",
+    "date": "2026-08-12",
+    "highlights": [
+      "Six pages, not one screen: overview, financial analysis, valuation, risk, AI research and an investment-committee memo, each built for a different reviewer's question.",
+      "The memo states the recommendation alongside the specific financial thresholds that would flip it, rather than a static, one-time conclusion.",
+      "Every chart on the valuation and risk pages links back to the same underlying model output the AI analyst cites, so the dashboard and the AI never disagree.",
+      "Designed to answer whether the company is healthy, what it's worth, and what could go wrong within a few minutes for someone seeing it for the first time."
     ]
   },
   {
