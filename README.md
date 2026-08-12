@@ -12,13 +12,25 @@ python3 -m http.server 8000 -d ~/portfolio-dashboard
 
 Open http://localhost:8000.
 
-Add a project through guided prompts rather than editing JSON by hand:
+## Adding a project: the Add project button
+
+Click **Add project** above the grid (or the pencil icon on any existing card to edit it). A form opens with every field explained inline. Save writes straight into `projects.json` on disk, no terminal needed.
+
+The first time you save, Chrome or Edge will ask you to pick `projects.json` from the folder, that grants the page permission to write to it. It only asks once; the permission is remembered across reloads.
+
+This button only appears when the site is running on localhost. If you deploy it later, visitors browsing the public URL never see it, since a static site cannot verify who's asking to edit it.
+
+If your browser does not support writing files directly (Safari, Firefox), Save instead downloads an updated `projects.json` for you to drop back into the project folder.
+
+Either way, the stat counters, filter chips, and Toolkit section recompute themselves automatically.
+
+## Adding a project: the command line
+
+Prefer a terminal, or want to script something? Same result, no browser needed:
 
 ```bash
 python3 manage.py add
 ```
-
-Then reload the page. The stat counters, filter chips, and Toolkit section all recompute themselves.
 
 ## The manage.py commands
 
@@ -76,9 +88,11 @@ Opening `index.html` directly through `file://` will not work, because the brows
 
 Not deployed yet, by choice. Before making it public:
 
-1. Replace the sample projects with real ones and run `python3 manage.py validate`.
+1. Replace the sample projects with real ones, using the Add project button or `manage.py add`, then run `python3 manage.py validate`.
 2. Update the GitHub URL in the Contact section of `index.html`.
 3. Decide whether to publish your email address or link to LinkedIn instead. A raw `mailto:` on a public page gets scraped.
+
+The Add project button and the edit pencils disappear automatically once the site is not on localhost, so none of this editing UI reaches a public visitor.
 
 **GitHub Pages:** push to a repo, then Settings > Pages > Source: `main` branch, `/ (root)`.
 

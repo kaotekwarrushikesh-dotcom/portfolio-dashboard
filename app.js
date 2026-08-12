@@ -137,10 +137,28 @@ function renderStats() {
 /* ============================================================
    Cards
    ============================================================ */
-function renderCard(project) {
-  const card = el('button', 'card');
-  card.type = 'button';
+function renderCard(project, index) {
+  // An article rather than a button, so the local edit control can nest inside
+  // it without producing a button within a button.
+  const card = el('article', 'card');
+  card.tabIndex = 0;
+  card.setAttribute('role', 'button');
   card.setAttribute('aria-label', `View details for ${project.title}`);
+
+  if (IS_LOCAL) {
+    const edit = el('button', 'card-edit');
+    edit.type = 'button';
+    edit.title = 'Edit this project';
+    edit.setAttribute('aria-label', `Edit ${project.title}`);
+    edit.append(...parseSvg(
+      '<svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><path d="M13.2 3.6l3.2 3.2M4 16h3.2l8.4-8.4a1.6 1.6 0 0 0 0-2.3l-.9-.9a1.6 1.6 0 0 0-2.3 0L4 12.8V16z" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    ));
+    edit.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openForm(projects.indexOf(project));
+    });
+    card.appendChild(edit);
+  }
 
   const top = el('div', 'card-top');
   top.appendChild(el('h3', null, project.title));
@@ -163,6 +181,12 @@ function renderCard(project) {
   card.appendChild(foot);
 
   card.addEventListener('click', () => openModal(project));
+  card.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openModal(project);
+    }
+  });
   return card;
 }
 
@@ -319,17 +343,20 @@ function renderFilters() {
     filtersEl.appendChild(chip);
   }
 
-  filtersEl.addEventListener('click', (e) => {
-    const chip = e.target.closest('.filter-chip');
-    if (!chip) return;
-    const key = chip.dataset.key;
-    activeTag = key && key !== activeTag ? key : null;
-    for (const c of filtersEl.children) {
-      c.setAttribute('aria-pressed', String((c.dataset.key || null) === activeTag || (!activeTag && !c.dataset.key)));
-    }
-    render();
-  });
 }
+
+// Delegated once at startup. Attaching inside renderFilters would stack up
+// duplicate listeners every time the list is rebuilt after an edit.
+filtersEl.addEventListener('click', (e) => {
+  const chip = e.target.closest('.filter-chip');
+  if (!chip) return;
+  const key = chip.dataset.key;
+  activeTag = key && key !== activeTag ? key : null;
+  for (const c of filtersEl.children) {
+    c.setAttribute('aria-pressed', String((c.dataset.key || null) === activeTag || (!activeTag && !c.dataset.key)));
+  }
+  render();
+});
 
 function renderStack() {
   const counts = new Map();
@@ -352,6 +379,259 @@ searchEl.addEventListener('input', render);
 /* ============================================================
    Boot
    ============================================================ */
+/* ============================================================
+   Editor
+   Only runs locally. The button stays hidden on a deployed site so
+   visitors never see it.
+   ============================================================ */
+const IS_LOCAL =
+  ['localhost', '127.0.0.1', '0.0.0.0', ''].includes(location.hostname) || location.protocol === 'file:';
+
+const CAN_WRITE_FILES = 'showOpenFilePicker' in window;
+
+const formBackdrop = document.getElementById('form-backdrop');
+const form = document.getElementById('project-form');
+const formError = document.getElementById('form-error');
+const formTitleEl = document.getElementById('form-title');
+const formIntro = document.getElementById('form-intro');
+const deleteBtn = document.getElementById('form-delete');
+const addBtn = document.getElementById('add-project');
+const toastEl = document.getElementById('toast');
+
+let editIndex = null;
+let fileHandle = null;
+
+/* --- Remember the chosen file across reloads via IndexedDB --- */
+function idb(mode, fn) {
+  return new Promise((resolve, reject) => {
+    const open = indexedDB.open('dashboard-editor', 1);
+    open.onupgradeneeded = () => open.result.createObjectStore('handles');
+    open.onerror = () => reject(open.error);
+    open.onsuccess = () => {
+      try {
+        const tx = open.result.transaction('handles', mode);
+        const req = fn(tx.objectStore('handles'));
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      } catch (err) {
+        // store.put/get can throw synchronously (e.g. DataCloneError). Without this,
+        // the throw lands inside an event callback and the promise hangs forever,
+        // leaving the Save button stuck on "Saving..." with no way out.
+        reject(err);
+      }
+    };
+  });
+}
+
+const saveHandle = (h) => idb('readwrite', (s) => s.put(h, 'projects')).catch(() => {});
+const loadHandle = () => idb('readonly', (s) => s.get('projects')).catch(() => null);
+
+async function ensureWritable() {
+  if (!CAN_WRITE_FILES) return null;
+  if (!fileHandle) fileHandle = await loadHandle();
+
+  if (fileHandle) {
+    const opts = { mode: 'readwrite' };
+    let perm = await fileHandle.queryPermission(opts);
+    if (perm === 'prompt') perm = await fileHandle.requestPermission(opts);
+    if (perm === 'granted') return fileHandle;
+    fileHandle = null;
+  }
+
+  toast('Choose your projects.json file to grant write access', 4200);
+  const [handle] = await window.showOpenFilePicker({
+    types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
+    excludeAcceptAllOption: false,
+  });
+  if ((await handle.requestPermission({ mode: 'readwrite' })) !== 'granted') return null;
+  fileHandle = handle;
+  await saveHandle(handle);
+  return handle;
+}
+
+function downloadFallback(json) {
+  const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'projects.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function persist() {
+  const json = JSON.stringify(projects, null, 2) + '\n';
+  try {
+    const handle = await ensureWritable();
+    if (handle) {
+      const writable = await handle.createWritable();
+      await writable.write(json);
+      await writable.close();
+      return 'file';
+    }
+  } catch (err) {
+    if (err.name === 'AbortError') return 'cancelled';
+    console.warn('Direct write failed, falling back to download.', err);
+  }
+  downloadFallback(json);
+  return 'download';
+}
+
+function toast(message, ms = 3200) {
+  toastEl.textContent = message;
+  toastEl.hidden = false;
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => {
+    toastEl.hidden = true;
+  }, ms);
+}
+
+/* --- Open and close --- */
+function openForm(index = null) {
+  editIndex = index;
+  formError.hidden = true;
+  form.reset();
+
+  const editing = index !== null;
+  formTitleEl.textContent = editing ? 'Edit project' : 'Add a project';
+  formIntro.innerHTML = CAN_WRITE_FILES
+    ? 'Saved straight into <code>projects.json</code>.'
+    : 'Your browser cannot write files directly, so this downloads an updated <code>projects.json</code> for you to drop into the project folder.';
+  deleteBtn.hidden = !editing;
+
+  if (editing) {
+    const p = projects[index];
+    form.title.value = p.title || '';
+    form.description.value = p.description || '';
+    form.tags.value = (p.tags || []).join(', ');
+    form.status.value = p.status || 'learning';
+    form.date.value = p.date || '';
+    form.repo.value = p.repo || '';
+    form.demo.value = p.demo || '';
+    form.highlights.value = (p.highlights || []).join('\n');
+  } else {
+    form.date.value = new Date().toISOString().slice(0, 10);
+  }
+
+  renderTagSuggestions();
+  formBackdrop.hidden = false;
+  document.body.style.overflow = 'hidden';
+  form.title.focus();
+}
+
+function closeForm() {
+  formBackdrop.hidden = true;
+  document.body.style.overflow = '';
+  editIndex = null;
+}
+
+/* --- Click a suggestion to append it to the tags field --- */
+function renderTagSuggestions() {
+  const box = document.getElementById('tag-suggest');
+  const existing = [...new Set(projects.flatMap((p) => p.tags || []))].sort();
+  box.replaceChildren();
+  for (const tag of existing.slice(0, 12)) {
+    const chip = el('button', 'tag-suggest-chip', tag);
+    chip.type = 'button';
+    chip.addEventListener('click', () => {
+      const current = form.tags.value.split(',').map((t) => t.trim()).filter(Boolean);
+      if (!current.some((t) => t.toLowerCase() === tag.toLowerCase())) current.push(tag);
+      form.tags.value = current.join(', ');
+      form.tags.focus();
+    });
+    box.appendChild(chip);
+  }
+}
+
+/* --- Submit --- */
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const entry = {
+    title: form.title.value.trim(),
+    description: form.description.value.trim(),
+    tags: form.tags.value.split(',').map((t) => t.trim()).filter(Boolean),
+    repo: form.repo.value.trim(),
+    demo: form.demo.value.trim(),
+    status: form.status.value,
+    date: form.date.value || new Date().toISOString().slice(0, 10),
+    highlights: form.highlights.value.split('\n').map((h) => h.trim()).filter(Boolean),
+  };
+
+  const problems = [];
+  if (!entry.title) problems.push('Title is required.');
+  if (!entry.description) problems.push('Description is required.');
+  if (!entry.tags.length) problems.push('Add at least one tag.');
+  for (const field of ['repo', 'demo']) {
+    if (entry[field] && !/^https?:\/\//.test(entry[field])) {
+      problems.push(`${field === 'repo' ? 'Repo' : 'Demo'} URL should start with https://`);
+    }
+    if (entry[field].includes('your-username')) {
+      problems.push(`The ${field} URL still has the placeholder "your-username".`);
+    }
+  }
+
+  if (problems.length) {
+    formError.textContent = problems.join(' ');
+    formError.hidden = false;
+    return;
+  }
+
+  if (editIndex !== null) projects[editIndex] = entry;
+  else projects.push(entry);
+  projects.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+  const saveBtn = document.getElementById('form-save');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving...';
+  const result = await persist();
+  saveBtn.disabled = false;
+  saveBtn.textContent = 'Save project';
+
+  if (result === 'cancelled') {
+    formError.textContent = 'Save cancelled, so nothing was written to disk.';
+    formError.hidden = false;
+    return;
+  }
+
+  refreshAll();
+  closeForm();
+  toast(
+    result === 'file'
+      ? `Saved "${entry.title}" to projects.json`
+      : `Downloaded projects.json. Move it into the project folder to keep the change.`,
+    result === 'file' ? 3000 : 6000
+  );
+});
+
+deleteBtn.addEventListener('click', async () => {
+  if (editIndex === null) return;
+  const title = projects[editIndex].title;
+  if (!confirm(`Delete "${title}"? This rewrites projects.json.`)) return;
+  projects.splice(editIndex, 1);
+  const result = await persist();
+  if (result === 'cancelled') return;
+  refreshAll();
+  closeForm();
+  toast(`Deleted "${title}"`);
+});
+
+document.getElementById('form-close').addEventListener('click', closeForm);
+document.getElementById('form-cancel').addEventListener('click', closeForm);
+formBackdrop.addEventListener('click', (e) => {
+  if (e.target === formBackdrop) closeForm();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !formBackdrop.hidden) closeForm();
+});
+addBtn.addEventListener('click', () => openForm(null));
+
+function refreshAll() {
+  renderStats();
+  renderFilters();
+  renderStack();
+  render();
+}
+
 function showLoadError(heading, detail, fix) {
   const box = el('div', 'load-error');
   box.appendChild(el('h3', null, heading));
@@ -381,6 +661,7 @@ fetch('projects.json')
   .then((data) => {
     if (!Array.isArray(data)) throw new Error('projects.json must contain a list');
     projects = data.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    addBtn.hidden = !IS_LOCAL;
     renderStats();
     renderFilters();
     renderStack();
