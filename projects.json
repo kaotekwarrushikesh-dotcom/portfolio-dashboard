@@ -102,58 +102,5 @@
       "Every chart on the valuation and risk pages links back to the same underlying model output the AI analyst cites, so the dashboard and the AI never disagree.",
       "Designed to answer whether the company is healthy, what it's worth, and what could go wrong within a few minutes for someone seeing it for the first time."
     ]
-  },
-  {
-    "title": "Stock Screener CLI",
-    "description": "A command-line tool that pulls daily price data and screens tickers against custom valuation rules.",
-    "tags": [
-      "Finance",
-      "Python",
-      "Pandas"
-    ],
-    "repo": "https://github.com/your-username/stock-screener-cli",
-    "demo": "",
-    "status": "learning",
-    "date": "2026-08-01",
-    "highlights": [
-      "Fetches and caches daily OHLCV data so repeat screens run without hitting the API again.",
-      "Rules are defined in a small config format, so adding a new screen needs no code changes.",
-      "Outputs a ranked table with the metrics that triggered each match."
-    ]
-  },
-  {
-    "title": "Portfolio Rebalancer",
-    "description": "Computes the minimum set of trades needed to bring a portfolio back to its target allocation weights.",
-    "tags": [
-      "Finance",
-      "Python"
-    ],
-    "repo": "https://github.com/your-username/portfolio-rebalancer",
-    "demo": "",
-    "status": "in progress",
-    "date": "2026-07-28",
-    "highlights": [
-      "Takes current holdings and target weights, returns the buy and sell orders to close the gap.",
-      "Accounts for a minimum trade threshold so tiny drifts do not generate noise trades.",
-      "Reports drift per position before and after the proposed rebalance."
-    ]
-  },
-  {
-    "title": "Task Tracker API",
-    "description": "REST API for managing tasks, built to practice authentication and relational database design.",
-    "tags": [
-      "Interview",
-      "Node.js",
-      "PostgreSQL"
-    ],
-    "repo": "https://github.com/your-username/task-tracker-api",
-    "demo": "",
-    "status": "complete",
-    "date": "2026-07-15",
-    "highlights": [
-      "Token-based auth with hashed credentials and scoped access per user.",
-      "Normalized schema with indexed foreign keys and migrations checked into the repo.",
-      "Integration tests cover the full request path against a real test database."
-    ]
   }
 ]
