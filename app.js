@@ -236,12 +236,54 @@ backdrop.addEventListener('click', (e) => {
   if (e.target === backdrop) closeModal();
 });
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !backdrop.hidden) closeModal();
+  if (backdrop.hidden) return;
+
+  if (e.key === 'Escape') {
+    closeModal();
+    return;
+  }
+
+  // Keep Tab inside the dialog while it is open.
+  if (e.key !== 'Tab') return;
+  const focusable = backdrop.querySelectorAll('button, a[href], input, [tabindex]:not([tabindex="-1"])');
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
 });
 
 /* ============================================================
    Filtering
    ============================================================ */
+function syncUrl() {
+  const params = new URLSearchParams();
+  if (activeTag) params.set('tag', activeTag);
+  const query = searchEl.value.trim();
+  if (query) params.set('q', query);
+  const qs = params.toString();
+  history.replaceState(null, '', qs ? `?${qs}${location.hash}` : location.pathname + location.hash);
+}
+
+function restoreStateFromUrl() {
+  const params = new URLSearchParams(location.search);
+  const tag = params.get('tag');
+  const query = params.get('q');
+  if (query) searchEl.value = query;
+  if (tag) {
+    activeTag = tag.toLowerCase();
+    for (const c of filtersEl.children) {
+      c.setAttribute('aria-pressed', String((c.dataset.key || null) === activeTag));
+    }
+  }
+}
+
 function render() {
   const query = searchEl.value.trim().toLowerCase();
   const visible = projects.filter((p) => {
@@ -253,6 +295,7 @@ function render() {
 
   grid.replaceChildren(...visible.map(renderCard));
   emptyEl.hidden = visible.length > 0;
+  syncUrl();
 }
 
 function renderFilters() {
@@ -309,19 +352,57 @@ searchEl.addEventListener('input', render);
 /* ============================================================
    Boot
    ============================================================ */
+function showLoadError(heading, detail, fix) {
+  const box = el('div', 'load-error');
+  box.appendChild(el('h3', null, heading));
+  box.appendChild(el('p', null, detail));
+  if (fix) {
+    const pre = el('pre', 'load-error-fix');
+    pre.textContent = fix;
+    box.appendChild(pre);
+  }
+  grid.replaceChildren(box);
+  emptyEl.hidden = true;
+}
+
 fetch('projects.json')
-  .then((res) => res.json())
+  .then(async (res) => {
+    if (!res.ok) throw new Error(`http ${res.status}`);
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch (err) {
+      // Surface the parse error itself. A trailing comma should not look like a blank page.
+      const parseError = new Error(err.message);
+      parseError.isParseError = true;
+      throw parseError;
+    }
+  })
   .then((data) => {
+    if (!Array.isArray(data)) throw new Error('projects.json must contain a list');
     projects = data.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     renderStats();
     renderFilters();
     renderStack();
+    restoreStateFromUrl();
     render();
     observeReveals();
   })
-  .catch(() => {
-    emptyEl.hidden = false;
-    emptyEl.textContent =
-      'Could not load projects.json. If you opened this file directly, run a local server instead: python3 -m http.server 8000';
+  .catch((err) => {
+    if (err.isParseError) {
+      showLoadError(
+        'projects.json has a syntax error',
+        err.message,
+        'python3 manage.py validate     # find the problem\ngit checkout projects.json     # or restore the last good copy'
+      );
+    } else if (location.protocol === 'file:') {
+      showLoadError(
+        'Run this through a local server',
+        'Opening the file directly blocks the browser from loading projects.json.',
+        'python3 -m http.server 8000 -d ~/portfolio-dashboard'
+      );
+    } else {
+      showLoadError('Could not load projects.json', err.message, null);
+    }
     observeReveals();
   });

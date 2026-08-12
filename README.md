@@ -1,60 +1,85 @@
 # Project Dashboard
 
-A static portfolio dashboard for showcasing projects to interviewers. No framework, no build step. Adding a project means editing one JSON file and pushing to git.
+A personal dashboard for tracking what I build and what I am learning. Static site, no framework, no build step, no dependencies beyond Python 3 for the management CLI.
 
-## Adding a project
+## Daily use
 
-Open `projects.json` and add an entry to the array:
-
-```json
-{
-  "title": "Portfolio Rebalancer",
-  "description": "Computes trades needed to bring a portfolio back to target allocation weights.",
-  "tags": ["Finance", "Python"],
-  "repo": "https://github.com/your-username/portfolio-rebalancer",
-  "demo": "",
-  "status": "learning",
-  "date": "2026-08-12",
-  "highlights": [
-    "Takes current holdings and target weights, returns the orders to close the gap.",
-    "Accounts for a minimum trade threshold so tiny drifts do not generate noise trades."
-  ]
-}
-```
-
-| Field | Notes |
-| --- | --- |
-| `title` | Project name shown on the card |
-| `description` | 1 to 2 sentences on what it does |
-| `tags` | Any strings. `Finance` and `Interview` get their own colors. Every tag becomes a filter chip and a Toolkit entry automatically |
-| `repo` | GitHub URL, or `""` to hide the link |
-| `demo` | Live URL, or `""` to hide the link |
-| `status` | `complete` shows green, `learning` and `in progress` show amber, anything else shows grey |
-| `date` | `YYYY-MM-DD`. Cards sort newest first |
-| `highlights` | Optional bullet list shown in the detail popup. This is where you explain the interesting engineering |
-
-Everything else updates itself. The stat counters, filter chips, and Toolkit section are all derived from the project list, so you never touch the HTML.
-
-## Writing highlights that land
-
-The cards are the hook and the popup is the substance. Interviewers skim cards, then open the one that interests them. Use `highlights` to answer the question they are actually asking: what was hard about this, and did you understand it? Prefer "caches daily bars so repeat screens skip the API" over "uses caching for performance."
-
-## Running locally
+Start the server once and leave it running:
 
 ```bash
 python3 -m http.server 8000 -d ~/portfolio-dashboard
 ```
 
-Then open http://localhost:8000. Opening `index.html` directly via `file://` will not work, because the browser blocks loading `projects.json`.
+Open http://localhost:8000.
 
-## Deploying
+Add a project through guided prompts rather than editing JSON by hand:
 
-**GitHub Pages:** push to a GitHub repo, then in the repo go to Settings > Pages > Source: `main` branch, `/ (root)`. Your site appears at `https://your-username.github.io/portfolio-dashboard/`.
+```bash
+python3 manage.py add
+```
 
-**Vercel:** go to vercel.com, import the repo, accept the defaults (no build step needed).
+Then reload the page. The stat counters, filter chips, and Toolkit section all recompute themselves.
 
-## Before you share the link
+## The manage.py commands
 
-- Replace the three sample projects with real ones.
-- Update the GitHub URL in the Contact section of `index.html`.
-- Check the hero headline still sounds like you.
+| Command | What it does |
+| --- | --- |
+| `python3 manage.py add` | Walks you through every field and appends the project |
+| `python3 manage.py list` | Numbered list of everything, with dates and tags |
+| `python3 manage.py edit` | Change a single field on one project |
+| `python3 manage.py remove` | Delete a project, with a confirmation step |
+| `python3 manage.py validate` | Check for missing fields, bad dates, broken URLs, leftover placeholders |
+
+Run `validate` before you ever make the site public. It specifically catches repo links still pointing at `your-username`, which is the mistake that would send an interviewer to a 404.
+
+Writes are atomic: the file is written to a temp path and then moved into place, so a cancelled run cannot leave you with a half-written `projects.json`.
+
+## Project fields
+
+| Field | Notes |
+| --- | --- |
+| `title` | The name an interviewer scans first |
+| `description` | One or two sentences. This is the card text |
+| `tags` | Any strings. `Finance` and `Interview` get their own colors. Every tag becomes a filter chip and a Toolkit entry |
+| `repo` | GitHub URL, or empty to hide the link |
+| `demo` | Live URL, or empty to hide the link |
+| `status` | `complete` shows green, `learning` and `in progress` show amber, `planned` shows grey |
+| `date` | `YYYY-MM-DD`. Cards always sort newest first |
+| `highlights` | Bullet list shown in the detail popup. This is where the real content goes |
+
+## Writing highlights that land
+
+Cards are the hook, the popup is the substance. Interviewers skim cards, then open the one that interests them. Use `highlights` to answer what they are actually asking: what was hard here, and did you understand it?
+
+Prefer "caches daily bars so repeat screens skip the API" over "uses caching for performance."
+
+## Shareable filtered views
+
+Filter state lives in the URL. Selecting the Finance chip gives you `?tag=finance`, and searching adds `&q=...`. That link reopens with the same filter applied, so you can send someone straight to a subset:
+
+```
+http://localhost:8000/?tag=finance
+```
+
+## If something breaks
+
+A syntax error in `projects.json` shows a panel on the page naming the exact line and column, rather than rendering a blank grid. To diagnose and recover:
+
+```bash
+python3 manage.py validate
+git checkout projects.json
+```
+
+Opening `index.html` directly through `file://` will not work, because the browser blocks it from loading `projects.json`. Use the local server.
+
+## Deploying later
+
+Not deployed yet, by choice. Before making it public:
+
+1. Replace the sample projects with real ones and run `python3 manage.py validate`.
+2. Update the GitHub URL in the Contact section of `index.html`.
+3. Decide whether to publish your email address or link to LinkedIn instead. A raw `mailto:` on a public page gets scraped.
+
+**GitHub Pages:** push to a repo, then Settings > Pages > Source: `main` branch, `/ (root)`.
+
+**Vercel:** import the repo at vercel.com and accept the defaults. No build step needed.
