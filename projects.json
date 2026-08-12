@@ -1,8 +1,35 @@
 [
   {
+    "title": "Investment Research & Decision Intelligence Platform",
+    "description": "Five-module platform that turns financial statements, market data and filings into a Financial Health Score, DCF/comps valuation, quantified risk, and a source-attributed AI research analyst, ending in a full investment committee memo.",
+    "tags": [
+      "Finance",
+      "Python",
+      "PostgreSQL",
+      "RAG",
+      "Valuation",
+      "Risk"
+    ],
+    "repo": "",
+    "demo": "",
+    "status": "planned",
+    "date": "2026-08-12",
+    "highlights": [
+      "Deterministic financial-statement engine: profitability, efficiency, leverage and cash-flow-quality ratios across multiple years, plus a transparently weighted Financial Health Score, not an arbitrary one.",
+      "DCF built from a component-level WACC (cost of equity, beta, ERP, cost of debt), reconciled against comparable-company multiples, with bull/base/bear scenarios and Monte Carlo valuation distributions.",
+      "Risk engine covering historical, parametric and Monte Carlo VaR, Expected Shortfall, GARCH volatility forecasting, and configurable stress tests (rate shocks, margin compression, market drawdowns).",
+      "AI analyst is retrieval and tool-calling only: it pulls numbers from the financial, valuation and risk engines via controlled tools rather than generating them, and every claim is tagged as sourced data, model output, or interpretation.",
+      "Six-page investment-committee dashboard ending in a BUY/HOLD/SELL memo that states the explicit financial thresholds which would flip the recommendation."
+    ]
+  },
+  {
     "title": "Stock Screener CLI",
     "description": "A command-line tool that pulls daily price data and screens tickers against custom valuation rules.",
-    "tags": ["Finance", "Python", "Pandas"],
+    "tags": [
+      "Finance",
+      "Python",
+      "Pandas"
+    ],
     "repo": "https://github.com/your-username/stock-screener-cli",
     "demo": "",
     "status": "learning",
@@ -16,7 +43,10 @@
   {
     "title": "Portfolio Rebalancer",
     "description": "Computes the minimum set of trades needed to bring a portfolio back to its target allocation weights.",
-    "tags": ["Finance", "Python"],
+    "tags": [
+      "Finance",
+      "Python"
+    ],
     "repo": "https://github.com/your-username/portfolio-rebalancer",
     "demo": "",
     "status": "in progress",
@@ -30,7 +60,11 @@
   {
     "title": "Task Tracker API",
     "description": "REST API for managing tasks, built to practice authentication and relational database design.",
-    "tags": ["Interview", "Node.js", "PostgreSQL"],
+    "tags": [
+      "Interview",
+      "Node.js",
+      "PostgreSQL"
+    ],
     "repo": "https://github.com/your-username/task-tracker-api",
     "demo": "",
     "status": "complete",
