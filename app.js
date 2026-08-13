@@ -236,7 +236,9 @@ function openModal(project) {
     actions.appendChild(a);
   }
   if (project.demo) {
-    const a = el('a', 'btn btn-ghost', 'Live demo');
+    // A generated report is not a live demo, so label the link by what it actually opens.
+    const isDoc = /\.(pdf|csv|xlsx?)($|\?)/i.test(project.demo);
+    const a = el('a', 'btn btn-ghost', isDoc ? 'View report' : 'Live demo');
     a.href = project.demo;
     a.target = '_blank';
     a.rel = 'noopener noreferrer';

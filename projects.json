@@ -1,23 +1,25 @@
 [
   {
     "title": "Financial Statement Intelligence Engine",
-    "description": "Multi-year financial-statement analysis engine that computes profitability, efficiency, leverage and cash-flow-quality ratios, then rolls them into a transparently weighted Financial Health Score.",
+    "description": "Pulls 10 years of filed 10-K data for 20 US companies straight from the SEC EDGAR XBRL API, turns it into profitability, efficiency, leverage and cash-flow ratios, narrates the trends, and scores each company against published thresholds. Outputs a 23-page report.",
     "tags": [
       "Finance",
       "Python",
-      "PostgreSQL",
-      "Pandas"
+      "Pandas",
+      "SEC EDGAR"
     ],
     "repo": "",
-    "demo": "",
-    "status": "planned",
-    "date": "2026-08-12",
+    "demo": "assets/financial-health-report.pdf",
+    "status": "complete",
+    "date": "2026-08-13",
     "highlights": [
-      "Works across multiple years of income statement, balance sheet and cash-flow data, not a single-year snapshot, so trend direction (margin expansion, ROIC trajectory, debt trend) is the actual output.",
-      "Financial Health Score has a documented, published weighting across profitability, growth, leverage, liquidity, cash generation and returns on capital, deliberately avoiding an unexplained black-box score.",
-      "Automatically flags whether the company's financial position is improving or deteriorating and which specific metrics need further investigation, rather than dumping a ratio table.",
-      "Efficiency metrics (inventory days, receivable days, payable days) roll up into a full cash-conversion-cycle view instead of being reported in isolation.",
-      "Cash-flow-quality checks (CFO/net income, FCF conversion, capex/revenue) catch cases where reported earnings and actual cash generation diverge."
+      "Every figure comes from filed 10-K data via the SEC EDGAR XBRL API across 20 companies and 10 fiscal years. Nothing is hand-entered, and the spot checks tie out to the filings (NVIDIA FY2025 revenue $130.5B, Microsoft FY2025 $281.7B, Tesla 2024 $97.69B).",
+      "Most of the engineering went into making EDGAR usable. Companies migrate between GAAP tags mid-history after ASC 606, so values are merged across an ordered list of candidate tags rather than taken from the first tag that returns anything, which took NVIDIA and Tesla from 6 usable years to 10.",
+      "Oil majors and several pharma companies never tag an operating income line, so EBIT is rebuilt from pretax income plus interest expense. Without that fallback, Exxon, Chevron, J&J, Merck and Pfizer produced no usable years at all.",
+      "EPS growth is deliberately excluded from the score. A 10-K restates only the roughly three years it covers, so Apple's FY2018 EPS reads 11.91 in one filing and 2.98 in another after the 4-for-1 split. Growth is scored on revenue and net income, which splits cannot distort.",
+      "The score refuses to invent results where data is missing: unavailable metrics are dropped, the remaining weights in that pillar are renormalized, and the exclusions are disclosed on each company's page. This caught negative book equity at Home Depot and AbbVie, where a negative debt-to-equity had been clamping to a perfect leverage score and overstating AbbVie by four points.",
+      "The resulting ranking is the clearest evidence of the method's own weakness, which is the point. The top four are all asset-light software and advertising businesses while Walmart lands 18th, because absolute thresholds measure the business model more than how well the company is run. Peer-relative scoring is the next module.",
+      "Full threshold table, fiscal-year convention and six known limitations are published in the report and README, so any score can be recalculated or argued with. Backed by 13 tests covering the negative-equity, zero-interest and weight-renormalization edge cases."
     ]
   },
   {
