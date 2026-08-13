@@ -8,7 +8,7 @@
       "Pandas",
       "SEC EDGAR"
     ],
-    "repo": "",
+    "repo": "https://github.com/kaotekwarrushikesh-dotcom/financial-statement-intelligence",
     "demo": "assets/financial-health-report.pdf",
     "status": "complete",
     "date": "2026-08-13",
