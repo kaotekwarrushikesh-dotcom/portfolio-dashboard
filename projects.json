@@ -24,23 +24,26 @@
   },
   {
     "title": "Institutional-Style Valuation Engine",
-    "description": "DCF built from a component-level WACC, cross-checked against comparable-company multiples, with bull/base/bear scenarios and Monte Carlo valuation distributions instead of a single fair-value number.",
+    "description": "Valuation engine for Nifty (NSE) companies in INR. Stage 1 is built: it turns cleaned financial statements into a read on the business and derives every forecast assumption from that history, with the reasoning attached. DCF, comparables, scenarios and Monte Carlo are the stages still to come.",
     "tags": [
       "Finance",
       "Python",
       "Valuation",
-      "Monte Carlo"
+      "NSE / Nifty"
     ],
-    "repo": "",
+    "repo": "https://github.com/kaotekwarrushikesh-dotcom/valuation-engine",
     "demo": "",
-    "status": "planned",
-    "date": "2026-08-12",
+    "status": "in progress",
+    "date": "2026-08-15",
     "highlights": [
-      "DCF forecasts revenue growth, margin, D&A, working capital and capex line by line into unlevered free cash flow, not a single-line \"grow revenue X%\" shortcut.",
-      "WACC is derived from its actual components (risk-free rate, beta, equity risk premium, cost of debt, effective tax rate), never hard-coded.",
-      "Comparable-company valuation cross-checks the DCF against peer P/E, EV/EBITDA, EV/Revenue and FCF yield, reporting the premium or discount to peer median.",
-      "Bull/base/bear scenarios and a WACC-vs-terminal-growth sensitivity table show how fragile the fair value actually is to each assumption.",
-      "Monte Carlo valuation treats growth, margin and WACC as distributions rather than fixed points, producing a range of intrinsic value with percentile bands instead of one number."
+      "Stage 1 of 7 is complete and the rest is not started, which the repo states plainly rather than implying a finished DCF. What exists: the data bridge, the historical read, and the assumption engine, covering 33 Nifty companies with 17 tests.",
+      "Reuses Module 1 at the schema rather than the source. Indian companies do not file with the SEC, so a second loader writes Module 1's exact cleaned-statement layout from NSE filings, and every downstream stage runs unchanged on either market. A US ticker still flows through the identical code path.",
+      "Market parameters travel with the company. Rupee cash flows are discounted at the India 10-year G-Sec rather than a US Treasury yield, the equity risk premium carries a country-risk component, and terminal growth is capped at India's ~9% nominal GDP instead of 4%. Applying the US ceiling to rupee cash flows would understate value for reasons of geography rather than economics.",
+      "No hard-coded growth rates. Every assumption comes from a stated rule applied to the company's own history and ships with its rationale and a confidence level. Hand-set values are permitted but tagged as overrides and report what the derived value would have been, so a judgement call can never be mistaken for evidence.",
+      "Two rules exist specifically to stop a DCF being steered toward a wanted answer: terminal growth is capped at the lower of nominal GDP and current growth, so a slow-growing business is never assumed to re-accelerate in perpetuity, and margins are held flat even where history shows expansion.",
+      "Working capital anchors on the recent level, not the ten-year median. Building it the obvious way would have produced a phantom multi-billion first-year cash outflow for Apple, whose working capital moved from +5% of revenue to -10% across the decade, so the median described no state the business was ever in.",
+      "Refuses to run on inadequate data instead of producing a confident wrong number. A quality gate blocks any company whose forecast drivers have under three usable years; Nestle India is blocked today for moving from a December to a March year-end, leaving a gap the engine will not bridge.",
+      "Banks and NBFCs are excluded by design. FCFF and enterprise value assume debt is financing, but for a lender borrowing is raw material, so an unlevered DCF is the wrong instrument rather than merely an imprecise one."
     ]
   },
   {
