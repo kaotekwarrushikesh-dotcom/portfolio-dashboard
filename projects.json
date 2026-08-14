@@ -32,10 +32,11 @@
       "NSE / Nifty"
     ],
     "repo": "https://github.com/kaotekwarrushikesh-dotcom/valuation-engine",
-    "demo": "",
+    "demo": "assets/valuation-stage1-report.pdf",
     "status": "in progress",
     "date": "2026-08-15",
     "highlights": [
+      "The report attached to this entry is 68 pages and is deliberately not a valuation: it publishes the assumptions a DCF would stand on, on their own, so they can be argued with while they are still cheap to change. Reviewing inputs after a share price exists is how a model gets talked into its conclusion.",
       "Stage 1 of 7 is complete and the rest is not started, which the repo states plainly rather than implying a finished DCF. What exists: the data bridge, the historical read, and the assumption engine, covering 33 Nifty companies with 17 tests.",
       "Reuses Module 1 at the schema rather than the source. Indian companies do not file with the SEC, so a second loader writes Module 1's exact cleaned-statement layout from NSE filings, and every downstream stage runs unchanged on either market. A US ticker still flows through the identical code path.",
       "Market parameters travel with the company. Rupee cash flows are discounted at the India 10-year G-Sec rather than a US Treasury yield, the equity risk premium carries a country-risk component, and terminal growth is capped at India's ~9% nominal GDP instead of 4%. Applying the US ceiling to rupee cash flows would understate value for reasons of geography rather than economics.",
@@ -43,7 +44,8 @@
       "Two rules exist specifically to stop a DCF being steered toward a wanted answer: terminal growth is capped at the lower of nominal GDP and current growth, so a slow-growing business is never assumed to re-accelerate in perpetuity, and margins are held flat even where history shows expansion.",
       "Working capital anchors on the recent level, not the ten-year median. Building it the obvious way would have produced a phantom multi-billion first-year cash outflow for Apple, whose working capital moved from +5% of revenue to -10% across the decade, so the median described no state the business was ever in.",
       "Refuses to run on inadequate data instead of producing a confident wrong number. A quality gate blocks any company whose forecast drivers have under three usable years; Nestle India is blocked today for moving from a December to a March year-end, leaving a gap the engine will not bridge.",
-      "Banks and NBFCs are excluded by design. FCFF and enterprise value assume debt is financing, but for a lender borrowing is raw material, so an unlevered DCF is the wrong instrument rather than merely an imprecise one."
+      "Banks and NBFCs are excluded by design. FCFF and enterprise value assume debt is financing, but for a lender borrowing is raw material, so an unlevered DCF is the wrong instrument rather than merely an imprecise one.",
+      "Reviewing the rendered report caught a bug that would have propagated into every valuation: Indian companies hold surplus in liquid funds rather than bank balances, so reading the narrow cash line inverted the sign of net debt and showed TCS and Hindustan Unilever as net debt when both are net cash."
     ]
   },
   {
