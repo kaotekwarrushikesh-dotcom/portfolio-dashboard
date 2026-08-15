@@ -24,11 +24,12 @@
   },
   {
     "title": "Institutional-Style Valuation Engine",
-    "description": "Valuation engine for Nifty (NSE) companies in INR. Stage 1 is built: it turns cleaned financial statements into a read on the business and derives every forecast assumption from that history, with the reasoning attached. DCF, comparables, scenarios and Monte Carlo are the stages still to come.",
+    "description": "Valuation engine for Nifty (NSE) companies in INR. Stages 1 and 2 are built: it derives every forecast assumption from a company's own history with the reasoning attached, then projects the income statement and builds free cash flow to the firm with every component visible. WACC, the DCF, comparables, scenarios and Monte Carlo are the stages still to come.",
     "tags": [
       "Finance",
       "Python",
       "Valuation",
+      "DCF",
       "NSE / Nifty"
     ],
     "repo": "https://github.com/kaotekwarrushikesh-dotcom/valuation-engine",
@@ -36,8 +37,9 @@
     "status": "in progress",
     "date": "2026-08-15",
     "highlights": [
-      "The report attached to this entry is 68 pages and is deliberately not a valuation: it publishes the assumptions a DCF would stand on, on their own, so they can be argued with while they are still cheap to change. Reviewing inputs after a share price exists is how a model gets talked into its conclusion.",
-      "Stage 1 of 7 is complete and the rest is not started, which the repo states plainly rather than implying a finished DCF. What exists: the data bridge, the historical read, and the assumption engine, covering 33 Nifty companies with 17 tests.",
+      "The attached report is deliberately not a valuation: nothing is discounted yet. It publishes the assumptions and the cash flows a DCF would stand on, so they can be argued with while they are still cheap to change. Reviewing inputs after a share price exists is how a model gets talked into its conclusion.",
+      "Stages 1 and 2 of 7 are complete and the rest is not started, which the repo states plainly rather than implying a finished DCF. What exists: the data bridge, the historical read, the assumption engine, the forecast and the FCFF build, across 32 Nifty companies with 38 tests.",
+      "FCFF is built the unlevered way and tested for it. Tax is charged on EBIT and interest never enters the cash flow, because the reported tax charge is struck after interest and already carries the debt tax shield. Using it while WACC also carries the shield in the discount rate values the same benefit twice, which is the most common way a DCF flatters itself and always moves the answer up.",
       "Reuses Module 1 at the schema rather than the source. Indian companies do not file with the SEC, so a second loader writes Module 1's exact cleaned-statement layout from NSE filings, and every downstream stage runs unchanged on either market. A US ticker still flows through the identical code path.",
       "Market parameters travel with the company. Rupee cash flows are discounted at the India 10-year G-Sec rather than a US Treasury yield, the equity risk premium carries a country-risk component, and terminal growth is capped at India's ~9% nominal GDP instead of 4%. Applying the US ceiling to rupee cash flows would understate value for reasons of geography rather than economics.",
       "No hard-coded growth rates. Every assumption comes from a stated rule applied to the company's own history and ships with its rationale and a confidence level. Hand-set values are permitted but tagged as overrides and report what the derived value would have been, so a judgement call can never be mistaken for evidence.",
@@ -45,7 +47,8 @@
       "Working capital anchors on the recent level, not the ten-year median. Building it the obvious way would have produced a phantom multi-billion first-year cash outflow for Apple, whose working capital moved from +5% of revenue to -10% across the decade, so the median described no state the business was ever in.",
       "Refuses to run on inadequate data instead of producing a confident wrong number. A quality gate blocks any company whose forecast drivers have under three usable years; Nestle India is blocked today for moving from a December to a March year-end, leaving a gap the engine will not bridge.",
       "Banks and NBFCs are excluded by design. FCFF and enterprise value assume debt is financing, but for a lender borrowing is raw material, so an unlevered DCF is the wrong instrument rather than merely an imprecise one.",
-      "Reviewing the rendered report caught a bug that would have propagated into every valuation: Indian companies hold surplus in liquid funds rather than bank balances, so reading the narrow cash line inverted the sign of net debt and showed TCS and Hindustan Unilever as net debt when both are net cash."
+      "Reviewing the rendered report caught a bug that would have propagated into every valuation: Indian companies hold surplus in liquid funds rather than bank balances, so reading the narrow cash line inverted the sign of net debt and showed TCS and Hindustan Unilever as net debt when both are net cash.",
+      "Checking the output against reality caught a currency bug worth more than the rest of the module. yfinance returns Infosys statements in USD while the share quotes in INR, which would have divided its valuation by about 95. The obvious fix was also wrong: HCL Technologies carries the same USD flag while reporting in rupees, so trusting the flag overstated it a hundredfold. The currency is now inferred by testing which reading implies a believable price-to-sales ratio against market capitalisation."
     ]
   },
   {
