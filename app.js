@@ -102,13 +102,15 @@ function countUp(node, target) {
 function renderStats() {
   const allTags = projects.flatMap((p) => p.tags || []);
   const finance = projects.filter((p) => (p.tags || []).some((t) => t.toLowerCase() === 'finance'));
-  const shipped = projects.filter((p) => (p.status || '').toLowerCase() === 'complete');
+  const completed = projects.filter((p) => (p.status || '').toLowerCase() === 'complete');
 
   const data = [
     { value: projects.length, label: 'Projects' },
     { value: finance.length, label: 'Finance builds' },
     { value: new Set(allTags.map((t) => t.toLowerCase())).size, label: 'Technologies' },
-    { value: shipped.length, label: 'Shipped' },
+    // "Completed" rather than "Shipped": it matches the wording of the status badge on the
+    // cards, so the counter and the projects it counts read as the same thing.
+    { value: completed.length, label: 'Completed' },
   ];
 
   statsEl.replaceChildren(
