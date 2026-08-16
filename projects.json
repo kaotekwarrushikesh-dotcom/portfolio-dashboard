@@ -1,49 +1,55 @@
 [
   {
     "title": "Financial Statement Intelligence Engine",
-    "description": "Pulls 10 years of filed 10-K data for 20 US companies straight from the SEC EDGAR XBRL API, turns it into profitability, efficiency, leverage and cash-flow ratios, narrates the trends, and scores each company against published thresholds. Outputs a 23-page report.",
+    "description": "Type a company name, get its financial health, in any market: US, Europe, India, Japan. US listings use 10 years of SEC EDGAR filings; everywhere else uses Yahoo Finance. Also runs as a 20-company batch producing a 23-page report.",
     "tags": [
       "Finance",
       "Python",
-      "Pandas",
-      "SEC EDGAR"
+      "Streamlit",
+      "SEC EDGAR",
+      "Yahoo Finance"
     ],
     "repo": "https://github.com/kaotekwarrushikesh-dotcom/financial-statement-intelligence",
     "demo": "assets/financial-health-report.pdf",
     "status": "complete",
-    "date": "2026-08-13",
+    "date": "2026-08-16",
     "highlights": [
-      "Every figure comes from filed 10-K data via the SEC EDGAR XBRL API across 20 companies and 10 fiscal years. Nothing is hand-entered, and the spot checks tie out to the filings (NVIDIA FY2025 revenue $130.5B, Microsoft FY2025 $281.7B, Tesla 2024 $97.69B).",
+      "Works for any listed company, not a fixed list. A Streamlit app takes a name or ticker, resolves it (including cross-listings, which it shows rather than silently picking one), and scores it live. Verified across five markets: Apple through EDGAR at 10 years, ASML, Shell, Nestle and Reliance through Yahoo Finance.",
+      "Currency is where a global loader silently produces a plausible wrong answer instead of an error, and three traps are handled: London quotes in pence, not pounds (Shell's \"3320.0\" GBp read as GBP overstates the price 100x); the reporting currency is not always the quote currency (Infosys reports in USD, trades in INR); and the currency flag itself lies in both directions (HCL Technologies is tagged USD while reporting in rupees). The check is market capitalisation, which is unambiguously in the quote currency \u2014 except between currencies of similar size (USD vs GBP at 0.79), where that test can't discriminate and the source's own tag is used instead.",
+      "Foreign issuers file 20-F, not 10-K, so EDGAR returns nothing for Shell or SAP despite both being US-listed. The loader falls back to Yahoo Finance automatically rather than failing.",
+      "Every figure comes from filed 10-K data via the SEC EDGAR XBRL API for US companies, across 20 companies and 10 fiscal years in the batch report. Nothing is hand-entered, and the spot checks tie out to the filings (NVIDIA FY2025 revenue $130.5B, Microsoft FY2025 $281.7B, Tesla 2024 $97.69B).",
       "Most of the engineering went into making EDGAR usable. Companies migrate between GAAP tags mid-history after ASC 606, so values are merged across an ordered list of candidate tags rather than taken from the first tag that returns anything, which took NVIDIA and Tesla from 6 usable years to 10.",
       "Oil majors and several pharma companies never tag an operating income line, so EBIT is rebuilt from pretax income plus interest expense. Without that fallback, Exxon, Chevron, J&J, Merck and Pfizer produced no usable years at all.",
       "EPS growth is deliberately excluded from the score. A 10-K restates only the roughly three years it covers, so Apple's FY2018 EPS reads 11.91 in one filing and 2.98 in another after the 4-for-1 split. Growth is scored on revenue and net income, which splits cannot distort.",
       "The score refuses to invent results where data is missing: unavailable metrics are dropped, the remaining weights in that pillar are renormalized, and the exclusions are disclosed on each company's page. This caught negative book equity at Home Depot and AbbVie, where a negative debt-to-equity had been clamping to a perfect leverage score and overstating AbbVie by four points.",
       "The resulting ranking is the clearest evidence of the method's own weakness, which is the point. The top four are all asset-light software and advertising businesses while Walmart lands 18th, because absolute thresholds measure the business model more than how well the company is run. Peer-relative scoring is the next module.",
-      "Full threshold table, fiscal-year convention and six known limitations are published in the report and README, so any score can be recalculated or argued with. Backed by 13 tests covering the negative-equity, zero-interest and weight-renormalization edge cases."
+      "Full threshold table, fiscal-year convention and known limitations are published in the report and README, so any score can be recalculated or argued with. Backed by 26 tests covering the negative-equity, zero-interest, weight-renormalization and currency-resolution edge cases."
     ]
   },
   {
     "title": "Institutional-Style Valuation Engine",
-    "description": "Valuation engine for Nifty (NSE) companies in INR. Stages 1 and 2 are built: it derives every forecast assumption from a company's own history with the reasoning attached, then projects the income statement and builds free cash flow to the firm with every component visible. WACC, the DCF, comparables, scenarios and Monte Carlo are the stages still to come.",
+    "description": "Valuation engine for Nifty (NSE) companies in INR. Stages 1 to 4 are built end to end, from historical assumptions through FCFF, WACC and a discounted cash flow to a fair value per share. Not yet published: the model reads systematically below market, and the entry says why rather than hiding it. Comparables, scenarios and Monte Carlo are still to come.",
     "tags": [
       "Finance",
       "Python",
       "Valuation",
       "DCF",
+      "WACC",
       "NSE / Nifty"
     ],
     "repo": "https://github.com/kaotekwarrushikesh-dotcom/valuation-engine",
     "demo": "assets/valuation-stage1-report.pdf",
     "status": "in progress",
-    "date": "2026-08-15",
+    "date": "2026-08-16",
     "highlights": [
-      "The attached report is deliberately not a valuation: nothing is discounted yet. It publishes the assumptions and the cash flows a DCF would stand on, so they can be argued with while they are still cheap to change. Reviewing inputs after a share price exists is how a model gets talked into its conclusion.",
-      "Stages 1 and 2 of 7 are complete and the rest is not started, which the repo states plainly rather than implying a finished DCF. What exists: the data bridge, the historical read, the assumption engine, the forecast and the FCFF build, across 32 Nifty companies with 38 tests.",
+      "Stages 1 to 4 of 7 run end to end and produce a fair value per share, but the valuations are deliberately not published to this dashboard. Every one of 32 companies values below market, and when a model disagrees with the market in the same direction on every name, the model is the problem, not the market. What is wrong and what is not is written up rather than hidden, which is the more useful thing to show than a number that looks confident and isn't.",
+      "A reverse DCF turns the disagreement into a specific question instead of a verdict: it solves for the discount rate at which the model would agree with today's price. Median across the universe is a 9.28% market-implied WACC against a 13.4% modelled one. That implies an equity risk premium near 2.3%, which isn't credible for India, so the gap isn't simply 'the market is expensive' \u2014 the modelled cash flows are genuinely too low, and the known cause (explicit-period reinvestment not yet tied to growth the way the terminal year is) is next on the list.",
+      "The equity risk premium was deliberately not lowered to close that gap. It was checked first: building the cost of equity through dollars instead (US risk-free plus a mature ERP plus a country premium, then adjusted for the inflation differential) lands at the same 14.5%, so 7.5% is defensible. Tuning it anyway to match the market would have been fitting the assumption to a wanted answer, which is the one thing this engine is built not to do.",
+      "Terminal value already required one correction found by checking output, not code: the forecast held capex at its historical share of revenue into perpetuity, charging Reliance for enough reinvestment to fund 9.7% growth while only crediting it 6.4%, forever. Terminal cash flow is now built so reinvestment matches the growth it is meant to fund (reinvestment rate = growth / ROIC), which moved Reliance from an unusable 22 rupees a share to 275.",
+      "WACC is built from its components rather than assumed: CAPM cost of equity with beta from a regression of monthly returns against the Nifty 50, Blume-adjusted for mean reversion; cost of debt as interest over average debt, bounded on both sides after Hindustan Unilever's naive calculation came back at 26%; and weights at market value of equity, book value of debt.",
+      "Stages 1 and 2: the data bridge, the historical read, the assumption engine, the forecast and the FCFF build, across 32 Nifty companies with 40 tests.",
       "FCFF is built the unlevered way and tested for it. Tax is charged on EBIT and interest never enters the cash flow, because the reported tax charge is struck after interest and already carries the debt tax shield. Using it while WACC also carries the shield in the discount rate values the same benefit twice, which is the most common way a DCF flatters itself and always moves the answer up.",
-      "Reuses Module 1 at the schema rather than the source. Indian companies do not file with the SEC, so a second loader writes Module 1's exact cleaned-statement layout from NSE filings, and every downstream stage runs unchanged on either market. A US ticker still flows through the identical code path.",
-      "Market parameters travel with the company. Rupee cash flows are discounted at the India 10-year G-Sec rather than a US Treasury yield, the equity risk premium carries a country-risk component, and terminal growth is capped at India's ~9% nominal GDP instead of 4%. Applying the US ceiling to rupee cash flows would understate value for reasons of geography rather than economics.",
       "No hard-coded growth rates. Every assumption comes from a stated rule applied to the company's own history and ships with its rationale and a confidence level. Hand-set values are permitted but tagged as overrides and report what the derived value would have been, so a judgement call can never be mistaken for evidence.",
-      "Two rules exist specifically to stop a DCF being steered toward a wanted answer: terminal growth is capped at the lower of nominal GDP and current growth, so a slow-growing business is never assumed to re-accelerate in perpetuity, and margins are held flat even where history shows expansion.",
       "Working capital anchors on the recent level, not the ten-year median. Building it the obvious way would have produced a phantom multi-billion first-year cash outflow for Apple, whose working capital moved from +5% of revenue to -10% across the decade, so the median described no state the business was ever in.",
       "Refuses to run on inadequate data instead of producing a confident wrong number. A quality gate blocks any company whose forecast drivers have under three usable years; Nestle India is blocked today for moving from a December to a March year-end, leaving a gap the engine will not bridge.",
       "Banks and NBFCs are excluded by design. FCFF and enterprise value assume debt is financing, but for a lender borrowing is raw material, so an unlevered DCF is the wrong instrument rather than merely an imprecise one.",
