@@ -649,7 +649,10 @@ function showLoadError(heading, detail, fix) {
   emptyEl.hidden = true;
 }
 
-fetch('projects.json')
+// Cache-bust with the load time: GitHub Pages serves projects.json with a 10-minute
+// cache-control, so without this a page loaded (or left open) within that window would
+// keep showing a stale project list even after a real update went live.
+fetch(`projects.json?v=${Date.now()}`)
   .then(async (res) => {
     if (!res.ok) throw new Error(`http ${res.status}`);
     const text = await res.text();
