@@ -57,8 +57,8 @@
     ]
   },
   {
-    "title": "Quantitative Risk Engine",
-    "description": "Market and fundamental risk quantified through VaR, Expected Shortfall, GARCH volatility forecasting and configurable stress tests, translating each shock directly into its impact on fair value and share price.",
+    "title": "Live Institutional Risk Engine",
+    "description": "A live risk-monitoring engine: any listed company or benchmark in, market risk recalculated on demand. Phases 1 to 3 of 14 are built: data ingestion with tiered validation, returns, historical and rolling volatility, and beta and drawdown, each verified against real, documented market events rather than only synthetic tests. VaR, Expected Shortfall, GARCH, stress testing and the live dashboard are the phases still to come.",
     "tags": [
       "Finance",
       "Python",
@@ -66,16 +66,17 @@
       "VaR",
       "GARCH"
     ],
-    "repo": "",
+    "repo": "https://github.com/kaotekwarrushikesh-dotcom/risk-engine",
     "demo": "",
-    "status": "planned",
-    "date": "2026-08-12",
+    "status": "in progress",
+    "date": "2026-08-18",
     "highlights": [
-      "VaR computed three ways (historical, parametric, Monte Carlo) and checked against Expected Shortfall for consistency, rather than reporting one VaR number as if methodology doesn't matter.",
-      "GARCH volatility forecasts are benchmarked against realized volatility and included only where they change the risk read, not added just to look technical.",
-      "A fundamental risk score tracks margin compression, rising net debt/EBITDA and deteriorating interest coverage, kept separate from the market-risk metrics.",
-      "Stress scenarios (revenue shock, margin compression, WACC increase, rate shock, market drawdown) flow straight through into the valuation engine, so a shock shows its real effect on fair value and share price.",
-      "For multi-asset exposure, risk contribution and concentration are broken out per position rather than reported only at the portfolio level."
+      "Every fetch is timestamped and classified DELAYED or STALE by measured age, never LIVE, because yfinance carries no real-time service guarantee. \"Live\" in this engine means refreshable on demand and recalculated from current data, not real-time, and the code states that distinction rather than quietly claiming more than the data source supports.",
+      "Data validation is tiered rather than pass/fail: issues are corrected automatically (a duplicate date, an out-of-order row), warnings let the calculation proceed but flag what to read carefully (a data gap, an extreme single-day move), and blocking issues refuse the series outright with \"Insufficient data for reliable risk calculation\" rather than a confident wrong number. The cleaning function applies exactly the corrections the validator describes, so the two can never quietly disagree.",
+      "Verified against real, documented events rather than only synthetic fixtures. NVIDIA's June 2024 10:1 stock split produces no false extreme-move flag, and checking why revealed that yfinance's close price is already split-adjusted regardless of the auto_adjust flag, which corrected a wrong assumption in the code's own comments before it shipped. GameStop's May 2024 short-squeeze days are correctly flagged as extreme moves, confirming the detector responds to genuine events.",
+      "Beta is computed two independent ways from the same data (the covariance formula and OLS regression) and the two results are asserted equal at runtime, since they are mathematically the same estimator and any gap between them means an alignment bug, not a modelling choice. A confidence field travels with every beta: Coca-Cola showed a near-zero beta against the S&P 500 over the last three years, which was checked rather than assumed to be a bug (the alignment and statistics were sound), and is reported as a genuinely low-confidence reading rather than hidden.",
+      "Two modules built and tested completely independently, the volatility-spike detector and the drawdown-episode detector, found the same elevated-risk period in the S&P 500's 2025 history without being told to look for it, which is stronger evidence of correctness than either module passing its own tests alone. Drawdown also reconstructed the real 2022 bear market exactly: -25.4% from January to October 2022, recovering by January 2024.",
+      "50 tests, including a flaky one caught and fixed by diagnosing the actual cause (a 5% significance threshold producing an expected 1-in-20 false positive on independent data) rather than just swapping the random seed until it passed."
     ]
   },
   {
