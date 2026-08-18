@@ -10,7 +10,7 @@
       "Yahoo Finance"
     ],
     "repo": "https://github.com/kaotekwarrushikesh-dotcom/financial-statement-intelligence",
-    "demo": "assets/financial-health-report.pdf",
+    "demo": "https://financial-statement-intelligence-rt6flmexrx7imct8iuafdi.streamlit.app",
     "status": "complete",
     "date": "2026-08-16",
     "highlights": [
@@ -39,7 +39,7 @@
       "NSE / Nifty"
     ],
     "repo": "https://github.com/kaotekwarrushikesh-dotcom/valuation-engine",
-    "demo": "assets/valuation-stage1-report.pdf",
+    "demo": "https://valuation-engine-zm5h2bwkjxtsshjxzccxag.streamlit.app",
     "status": "in progress",
     "date": "2026-08-17",
     "highlights": [
