@@ -89,24 +89,28 @@
     ]
   },
   {
-    "title": "AI Financial Research Analyst (RAG)",
-    "description": "A retrieval-augmented research agent that answers investment questions by calling the financial, valuation and risk engines as tools and citing the filing, page and section behind every claim.",
+    "title": "AI Financial Analyst",
+    "description": "An AI analyst that sits on top of the other three engines rather than beside them. The LLM decides what analysis a question needs and calls deterministic Python tools to get it; it never calculates a financial figure itself. Phase 1 of 16 is built: Modules 1, 2 and 3 are integrated behind one tool interface of 16 tools, each result tagged with whether it is a filed fact, a model calculation or a model assumption. The agent, RAG and dashboard are still to come.",
     "tags": [
       "Finance",
       "Python",
       "LLM",
-      "RAG"
+      "Tool Calling",
+      "RAG",
+      "Packaging"
     ],
-    "repo": "",
+    "repo": "https://github.com/kaotekwarrushikesh-dotcom/ai-financial-analyst",
     "demo": "",
-    "status": "planned",
-    "date": "2026-08-12",
+    "status": "in progress",
+    "date": "2026-08-21",
     "highlights": [
-      "The LLM never calculates or invents a financial figure; it calls dedicated financial-statement, valuation and risk tools and reports what they return.",
-      "RAG retrieves the actual annual-report or filing section behind an answer before the model responds, so \"why did margins decline\" is answered from a real disclosure, not a guess.",
-      "Every research response is labeled as source-derived fact, model-derived calculation, or AI interpretation, so a reader knows which parts to trust and which to check.",
-      "Confidence scoring and a data-freshness check let the system say \"insufficient evidence\" instead of producing a fluent but unsupported answer.",
-      "An audit log records what was retrieved and which tools fired for every answer, so a research conclusion can be traced back and reproduced."
+      "The differentiator is what the LLM is not allowed to do. It selects tools and interprets results; every ratio, DCF, WACC, VaR and GARCH figure is computed by the existing Python engines and handed back. That makes the numbers reproducible and auditable rather than generated, which is the difference between a financial analyst and a chatbot with a finance vocabulary.",
+      "Integration was blocked by something no adapter code could fix: all three engines shipped a top-level package literally named \"src\", so Python resolves whichever appears first on the path and the other two become unreachable. The easy way out was vendoring copies into the new repo, which is how the analyst quietly becomes a fourth, divergent implementation of the same finance. Each engine was renamed to its own namespace and given packaging metadata instead, and the analyst now pins them as git dependencies, so a fix in an engine reaches it without anything being copied.",
+      "Two supporting problems surfaced during that work and were fixed rather than worked around. The risk engine reached into a sibling config directory through a sys.path insert, which works from a checkout and breaks the moment the package is installed. The valuation engine's entire pipeline lived inside its Streamlit app behind a cache decorator, so importing it ran page setup and tied a library's caching policy to the lifetime of a browser tab; the calculation moved into the package and the app now imports it and applies its own caching.",
+      "Provenance is enforced in code, not requested in a prompt. Every value is tagged where it is produced as a source fact, a model calculation or a model assumption, and a tool that tries to emit an AI interpretation or judgement raises an error. Those two labels belong to the agent layer, so a model-authored sentence cannot reach a reader wearing the same label as a figure taken from a filing.",
+      "Tools never raise at the model. Every call returns a result object, and a failure is a result carrying a readable reason rather than an exception. An exception gives a model nothing true to say and invites it to fill the silence, which is exactly the hallucination the architecture exists to prevent; an invented tool name gets back the list of real ones instead of a crash.",
+      "Each engine's own caveats travel with its numbers, because the model will never read a README. The valuation always carries the finding that its DCF reads below market and must not be quoted alone. Value at Risk returns all three methods together, since they disagree in a structured way and handing over one number invites it to be reported as the risk. Unconditional figures say they are unconditional, and market data is classified delayed or stale, never live.",
+      "22 tests split by a live marker: 16 offline tests pin the provenance rules and the never-raise guarantee, and 6 live tests are deliberately not mocked, because a tool layer tested only against mocks proves the mocks work. The live set imports all three engines in one process, runs real valuations and VaR, and checks the same tool works for more than one company."
     ]
   },
   {
