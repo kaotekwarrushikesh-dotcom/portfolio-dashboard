@@ -107,9 +107,9 @@
       "Streamlit"
     ],
     "repo": "https://github.com/kaotekwarrushikesh-dotcom/pe-deal-engine",
-    "demo": "",
+    "demo": "https://jzhurmv3nn597zyxuqf2dg.streamlit.app",
     "status": "complete",
-    "date": "2026-08-26",
+    "date": "2026-08-28",
     "highlights": [
       "The DCF and the LBO answer different questions, and treating them as competing estimates of one number is the most common way the comparison is misread. The DCF values the business on its own cash flows with no view on who buys it. The LBO is a statement about the buyer's economics: leverage, a finite holding period and an exit. The gap between them is the deliverable rather than a tie-break.",
       "The two models are provably independent, which is the clearest evidence they are correctly separated. Raising beta from 1.15 to 1.60 moves DCF enterprise value from 2,253 to 1,728 and leaves the IRR at exactly 20.3%, because the LBO never uses a discount rate: its return is solved, not assumed. Raising leverage from 5.0x to 6.5x lifts the IRR from 20.3% to 25.5% and leaves the DCF untouched, because unlevered free cash flow is independent of capital structure by construction. If either orthogonality broke, one model would be contaminating the other.",
