@@ -176,7 +176,12 @@ function renderCard(project, index) {
   }
 
   const foot = el('div', 'card-foot');
-  foot.appendChild(el('span', null, formatDate(project.date)));
+  // The static date renders immediately and is replaced by the real push date once GitHub
+  // answers. Tagging the element by repo lets that happen in place, without a re-render that
+  // would restart the scroll-reveal animation.
+  const when = el('span', 'card-when', formatDate(project.date));
+  if (project.repo) when.dataset.repo = project.repo;
+  foot.appendChild(when);
   const cta = el('span', 'card-cta');
   cta.append('View details', ...parseSvg(ARROW));
   foot.appendChild(cta);
@@ -636,6 +641,38 @@ function refreshAll() {
   render();
 }
 
+/* Replace the hand-typed dates with real GitHub push dates, once and after first paint.
+ *
+ * Deliberately fire-and-forget. The page is already complete and correct when this runs, so
+ * a failure leaves it exactly as it was: no error state, no spinner, no layout shift. The
+ * only visible outcome is that a date becomes more accurate. */
+function upgradeToLiveActivity() {
+  const live = window.LiveActivity;
+  if (!live || !projects?.length) return;
+
+  live.fetchAllActivity(projects).then((byRepo) => {
+    if (!byRepo || !Object.keys(byRepo).length) return;
+
+    document.querySelectorAll('.card-when[data-repo]').forEach((node) => {
+      const activity = byRepo[node.dataset.repo];
+      const label = activity && live.relativeTime(activity.pushedAt);
+      if (!label) return;
+      node.textContent = `Updated ${label}`;
+      node.classList.add('is-live');
+      node.title = `Last push to GitHub: ${new Date(activity.pushedAt).toLocaleString()}`;
+    });
+
+    const latest = live.mostRecentPush(byRepo);
+    const banner = document.getElementById('live-activity');
+    if (latest && banner) {
+      const count = Object.keys(byRepo).length;
+      banner.textContent =
+        `${count} repositories tracked live · last commit ${live.relativeTime(latest)}`;
+      banner.hidden = false;
+    }
+  });
+}
+
 function showLoadError(heading, detail, fix) {
   const box = el('div', 'load-error');
   box.appendChild(el('h3', null, heading));
@@ -675,6 +712,7 @@ fetch(`projects.json?v=${Date.now()}`)
     restoreStateFromUrl();
     render();
     observeReveals();
+    upgradeToLiveActivity();
   })
   .catch((err) => {
     if (err.isParseError) {

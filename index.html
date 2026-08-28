@@ -6,7 +6,10 @@
 <meta name="description" content="Project dashboard of Rushikesh Kaotekwar: software and finance engineering work." />
 <title>Rushikesh Kaotekwar &middot; Project Dashboard</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%235b5bd6'/><text x='50' y='68' font-size='52' font-family='system-ui,sans-serif' font-weight='700' fill='white' text-anchor='middle'>RK</text></svg>" />
-<link rel="stylesheet" href="styles.css" />
+<!-- Version query busts the browser cache on deploy. Without it a returning
+     visitor keeps the previously cached CSS and JS after a push, which on a static
+     site with no build step means they see a stale version of the page. Bump on release. -->
+<link rel="stylesheet" href="styles.css?v=20260828" />
 <script>
   // Set the theme before first paint so there is no flash of the wrong theme.
   //
@@ -67,6 +70,9 @@
       A living record of what I build. Every project here started as something I did not know how to do yet.
       Weighted toward financial systems, market data, and the infrastructure underneath them.
     </p>
+    <!-- Filled in from the GitHub API after load, and hidden entirely if that fails, so the
+         hero never shows an empty or broken line. -->
+    <p class="live-activity reveal" id="live-activity" hidden></p>
     <div class="hero-actions reveal">
       <a class="btn btn-primary" href="#work">
         Browse the work
@@ -222,6 +228,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="app.js"></script>
+<script src="live.js?v=20260828"></script>
+<script src="app.js?v=20260828"></script>
 </body>
 </html>

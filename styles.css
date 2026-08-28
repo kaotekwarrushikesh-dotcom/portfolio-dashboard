@@ -576,3 +576,40 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.8; }
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
   .reveal { opacity: 1; transform: none; }
 }
+
+/* ============================================================
+   Live repository activity
+   ============================================================ */
+
+/* The hero line summarising real GitHub activity. Sized down and muted: it is evidence that
+   the site is current, not a headline competing with the actual message. */
+.live-activity {
+  display: inline-flex; align-items: center; gap: .5rem;
+  margin-top: .35rem;
+  font-size: .82rem; color: var(--muted);
+  letter-spacing: .01em;
+}
+.live-activity::before {
+  content: ''; width: 7px; height: 7px; border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, .7);
+  animation: pulse 2.4s infinite;
+  flex: none;
+}
+
+/* A card date that has been replaced by a real push date. The colour shift is the only
+   signal that it upgraded, and it is deliberately subtle: the point is that the figure is
+   accurate, not that it arrived over the network. */
+.card-when.is-live { color: var(--text); font-variant-numeric: tabular-nums; }
+.card-when.is-live::before {
+  content: ''; display: inline-block;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: #10b981; margin-right: .4rem; vertical-align: middle;
+  transform: translateY(-1px);
+}
+
+/* Respect a stated preference for less motion. The pulsing dot is decorative, so it is the
+   first thing to go rather than something a user has to tolerate. */
+@media (prefers-reduced-motion: reduce) {
+  .live-activity::before { animation: none; }
+}
