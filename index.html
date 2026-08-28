@@ -9,10 +9,14 @@
 <link rel="stylesheet" href="styles.css" />
 <script>
   // Set the theme before first paint so there is no flash of the wrong theme.
+  //
+  // Light is the default rather than the operating system preference. A recruiter opening
+  // this on a machine set to dark would otherwise see a different site from the one being
+  // described to them, and the work here sits alongside printed CVs and PDF reports. A
+  // visitor who picks a theme still gets their choice back on the next visit.
   (function () {
     var saved = localStorage.getItem('theme');
-    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    document.documentElement.dataset.theme = saved || (prefersDark ? 'dark' : 'light');
+    document.documentElement.dataset.theme = saved || 'light';
   })();
 </script>
 </head>
