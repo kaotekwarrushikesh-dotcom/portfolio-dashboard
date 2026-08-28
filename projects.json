@@ -95,6 +95,34 @@
     ]
   },
   {
+    "title": "PE Valuation & Deal Analysis Engine",
+    "description": "A private equity deal model that values one company two ways at once: a DCF for what the business is worth to a permanent owner, and a full LBO for what a sponsor can pay and still hit a target return. Every material assumption is a user input feeding one immutable assumption tree, so changing a growth rate moves the forecast, both valuations, the debt schedule, the sensitivity grids, the scenarios and the investment committee conclusion together. Nothing is hard-coded.",
+    "tags": [
+      "Finance",
+      "Python",
+      "Private Equity",
+      "LBO",
+      "DCF",
+      "Valuation",
+      "Streamlit"
+    ],
+    "repo": "https://github.com/kaotekwarrushikesh-dotcom/pe-deal-engine",
+    "demo": "",
+    "status": "complete",
+    "date": "2026-08-26",
+    "highlights": [
+      "The DCF and the LBO answer different questions, and treating them as competing estimates of one number is the most common way the comparison is misread. The DCF values the business on its own cash flows with no view on who buys it. The LBO is a statement about the buyer's economics: leverage, a finite holding period and an exit. The gap between them is the deliverable rather than a tie-break.",
+      "The two models are provably independent, which is the clearest evidence they are correctly separated. Raising beta from 1.15 to 1.60 moves DCF enterprise value from 2,253 to 1,728 and leaves the IRR at exactly 20.3%, because the LBO never uses a discount rate: its return is solved, not assumed. Raising leverage from 5.0x to 6.5x lifts the IRR from 20.3% to 25.5% and leaves the DCF untouched, because unlevered free cash flow is independent of capital structure by construction. If either orthogonality broke, one model would be contaminating the other.",
+      "One immutable assumption tree feeds everything, so a DCF and an LBO cannot disagree because they were handed different growth rates. Immutability is not stylistic: a sensitivity grid runs eighty variants and the scenario engine runs three, and the single most common way a financial model produces a wrong number is state left behind from the previous run. A scenario is a new object, never a mutated global.",
+      "The interest circularity in an LBO is real and is resolved rather than avoided. Interest depends on the debt balance, which depends on how much cash is swept to repay it, which depends on interest. A beginning-balance convention breaks the loop; an average-balance convention does not, and the schedule is recomputed until the charge stops moving. Spreadsheets solve this by enabling iterative calculation and hoping; this engine iterates explicitly, caps the passes and reports whether it converged.",
+      "The value creation bridge has four components, not the usual three. EBITDA growth, multiple change and debt paydown do not sum to total value created: the missing term is the interaction between growth and multiple, the extra value from selling more EBITDA at a higher price, which belongs to neither lever alone. Many published bridges drop it and silently absorb the gap into EBITDA growth, flattering the operational story. Here the four sum exactly, the identity is asserted at runtime, and a test demonstrates that removing the fourth breaks it by precisely its own size.",
+      "The maximum entry price solver runs the model backwards, asking what a sponsor can pay to hit a target IRR rather than what return a price produces. Building it surfaced a real bug: below roughly 4.5x entry the debt raised exceeds the total funding requirement, so sponsor equity goes negative and IRR is undefined. Reading that as \"target unreachable\" reported the exact opposite of the truth, rejecting deals that work at a sensible price because they break at an absurd one. The solver now establishes the feasible range before bisecting.",
+      "Tax is handled differently in each model on purpose, and that is the substantive difference between them rather than an inconsistency. The DCF charges tax on unlevered EBIT and interest never enters the cash flow, because WACC already carries the debt shield in the discount rate; counting it twice is the most common way a DCF flatters itself. The LBO charges cash tax on profit after interest, because the sponsor genuinely deducts it and that shield is a real source of buyout returns.",
+      "Model validation is tiered rather than pass/fail, because a model that blocks on everything is unusable and one that blocks on nothing is untrustworthy. Terminal growth at or above WACC blocks outright, since the Gordon formula divides by their difference and the output would be an artefact of the division. Leverage above seven turns warns but proceeds. An exit multiple above the entry multiple is noted, since assuming multiple expansion is a bet on the market rather than on the business.",
+      "Every headline number has a Show calculation panel reconstructing it line by line, so it can be checked by hand rather than believed, and an audit trail maps each input to what it flows through and what it finally affects. The interface layer holds no financial calculations at all: it collects inputs, calls the engine and renders results, so all 75 tests sit on the part that matters."
+    ]
+  },
+  {
     "title": "AI Financial Analyst",
     "description": "An AI analyst that sits on top of the other three engines rather than beside them. The LLM decides what analysis a question needs and calls deterministic Python tools to get it; it never calculates a financial figure itself. Phase 1 of 16 is built: Modules 1, 2 and 3 are integrated behind one tool interface of 16 tools, each result tagged with whether it is a filed fact, a model calculation or a model assumption. The agent, RAG and dashboard are still to come.",
     "tags": [
