@@ -176,24 +176,5 @@
       "The resulting ranking is the clearest evidence of the method's own weakness, which is the point. The top four are all asset-light software and advertising businesses while Walmart lands 18th, because absolute thresholds measure the business model more than how well the company is run. Peer-relative scoring is the next module.",
       "Full threshold table, fiscal-year convention and known limitations are published in the report and README, so any score can be recalculated or argued with. Backed by 26 tests covering the negative-equity, zero-interest, weight-renormalization and currency-resolution edge cases."
     ]
-  },
-  {
-    "title": "Investment Committee Dashboard",
-    "description": "A six-page decision terminal that turns financial analysis, valuation, risk and AI research into one BUY/HOLD/SELL memo, stating the explicit thresholds that would change the call.",
-    "tags": [
-      "Finance",
-      "Python",
-      "Streamlit"
-    ],
-    "repo": "",
-    "demo": "",
-    "status": "planned",
-    "date": "2026-08-12",
-    "highlights": [
-      "Six pages, not one screen: overview, financial analysis, valuation, risk, AI research and an investment-committee memo, each built for a different reviewer's question.",
-      "The memo states the recommendation alongside the specific financial thresholds that would flip it, rather than a static, one-time conclusion.",
-      "Every chart on the valuation and risk pages links back to the same underlying model output the AI analyst cites, so the dashboard and the AI never disagree.",
-      "Designed to answer whether the company is healthy, what it's worth, and what could go wrong within a few minutes for someone seeing it for the first time."
-    ]
   }
 ]
