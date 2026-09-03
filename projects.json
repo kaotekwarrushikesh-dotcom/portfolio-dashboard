@@ -65,6 +65,33 @@
     ]
   },
   {
+    "title": "Institutional Financial Research & Investment Committee Platform",
+    "description": "A single-company research platform that composes the other three engines into one model rather than adding new domain calculation: financial statement analysis, valuation and risk on one page each, plus a synthesis layer and an investment committee memo with thresholds that would flip the recommendation. Six pages read one CompanyModel; an assumption override cascades live from the DCF chain through to the recommendation, with no manual refresh.",
+    "tags": [
+      "Finance",
+      "Python",
+      "Equity Research",
+      "DCF",
+      "Valuation",
+      "Risk",
+      "Streamlit",
+      "Investment Committee"
+    ],
+    "repo": "https://github.com/kaotekwarrushikesh-dotcom/institutional-research-platform",
+    "demo": "",
+    "status": "complete",
+    "date": "2026-09-03",
+    "highlights": [
+      "The first module built entirely by composing three already-tested engines rather than adding new domain calculation: financial-statement-intelligence for filed statements, valuation-engine for the DCF/WACC/scenarios, risk-engine for market risk and its own fundamental- and valuation-risk scores. All three are pip-installed straight from their own repositories as dependencies.",
+      "An assumption override in the sidebar (revenue growth, EBITDA margin, WACC, terminal growth, tax rate) cascades through Revenue → EBITDA → FCFF → DCF → Equity Value → Implied Price → the investment-committee recommendation by re-running Module 2's own build_forecast/build_fcff/run_dcf functions, never a second implementation of them, and does so on a shallow copy so the Streamlit-cached base model is never mutated across sessions. Verified live: a +5 point revenue-growth override moved AAPL's DCF-implied price from $95.88 to $119.83 and every dependent figure with it, with no manual refresh.",
+      "Found and fixed a three-order-of-magnitude unit bug: Module 2's quick pipeline returns market cap in raw currency units but derives net debt and every EBITDA figure in millions internally, so a naive trading EV/EBITDA multiple came out at 32,764,008x instead of roughly 33x — caught by comparing it against the DCF-implied multiple in a smoke test and noticing they were nowhere near comparable.",
+      "Found and fixed a sensitivity grid that silently ignored its own input: run_dcf's exit_ev_ebitda argument only ever produces an alternative_terminal cross-check value, never substituting for the Gordon-growth terminal value in implied_share_price, so a first version of the WACC-vs-exit-multiple grid returned a different-looking but numerically flat table. The regression test now asserts the grid actually varies with the multiple, not just that it renders.",
+      "The 'AI Research' page is explicit about what it is not: not a live language-model call over filings or news, since that needs a real retrieval and citation pipeline this build does not have. It is a deterministic synthesis layer where every sentence cites a number that also appears elsewhere in the app, and two sections the spec asked for — competitive position, industry outlook — are marked unavailable rather than filled with a plausible-sounding guess.",
+      "The investment-committee recommendation (INVEST/HOLD/PASS) is a disclosed rule over six documented thresholds — revenue growth, EBITDA margin, leverage, DCF upside, free cash flow, composite risk — not a fitted or weighted model hiding behind a confident-looking output. Each threshold is paired with the exact condition that would flip it, computed live from the same model every other page reads.",
+      "41 tests: 28 offline against hand-built fixtures reusing the real CompanyModel dataclass with lightweight stand-ins underneath, and 13 live integration tests against real companies, including regression tests for both bugs above and a graceful-failure test for a query the platform was never designed to support (a benchmark index has no financial statements, so build() fails with a clear error rather than degrading into a mode none of the six pages could use)."
+    ]
+  },
+  {
     "title": "PE Valuation & Deal Analysis Engine",
     "description": "A private equity deal model that values one company two ways at once: a DCF for what the business is worth to a permanent owner, and a full LBO for what a sponsor can pay and still hit a target return. Every material assumption is a user input feeding one immutable assumption tree, so changing a growth rate moves the forecast, both valuations, the debt schedule, the sensitivity grids, the scenarios and the investment committee conclusion together. Nothing is hard-coded.",
     "tags": [
