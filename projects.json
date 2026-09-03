@@ -1,65 +1,5 @@
 [
   {
-    "title": "Financial Statement Intelligence Engine",
-    "description": "Type a company name, get its financial health, in any market: US, Europe, India, Japan. US listings use 10 years of SEC EDGAR filings; everywhere else uses Yahoo Finance. Also runs as a 20-company batch producing a 23-page report.",
-    "tags": [
-      "Finance",
-      "Python",
-      "Streamlit",
-      "SEC EDGAR",
-      "Yahoo Finance"
-    ],
-    "repo": "https://github.com/kaotekwarrushikesh-dotcom/financial-statement-intelligence",
-    "demo": "https://financial-statement-intelligence-rt6flmexrx7imct8iuafdi.streamlit.app",
-    "status": "complete",
-    "date": "2026-08-16",
-    "highlights": [
-      "Works for any listed company, not a fixed list. A Streamlit app takes a name or ticker, resolves it (including cross-listings, which it shows rather than silently picking one), and scores it live. Verified across five markets: Apple through EDGAR at 10 years, ASML, Shell, Nestle and Reliance through Yahoo Finance.",
-      "Currency is where a global loader silently produces a plausible wrong answer instead of an error, and three traps are handled: London quotes in pence, not pounds (Shell's \"3320.0\" GBp read as GBP overstates the price 100x); the reporting currency is not always the quote currency (Infosys reports in USD, trades in INR); and the currency flag itself lies in both directions (HCL Technologies is tagged USD while reporting in rupees). The check is market capitalisation, which is unambiguously in the quote currency — except between currencies of similar size (USD vs GBP at 0.79), where that test can't discriminate and the source's own tag is used instead.",
-      "Foreign issuers file 20-F, not 10-K, so EDGAR returns nothing for Shell or SAP despite both being US-listed. The loader falls back to Yahoo Finance automatically rather than failing.",
-      "Every figure comes from filed 10-K data via the SEC EDGAR XBRL API for US companies, across 20 companies and 10 fiscal years in the batch report. Nothing is hand-entered, and the spot checks tie out to the filings (NVIDIA FY2025 revenue $130.5B, Microsoft FY2025 $281.7B, Tesla 2024 $97.69B).",
-      "Most of the engineering went into making EDGAR usable. Companies migrate between GAAP tags mid-history after ASC 606, so values are merged across an ordered list of candidate tags rather than taken from the first tag that returns anything, which took NVIDIA and Tesla from 6 usable years to 10.",
-      "Oil majors and several pharma companies never tag an operating income line, so EBIT is rebuilt from pretax income plus interest expense. Without that fallback, Exxon, Chevron, J&J, Merck and Pfizer produced no usable years at all.",
-      "EPS growth is deliberately excluded from the score. A 10-K restates only the roughly three years it covers, so Apple's FY2018 EPS reads 11.91 in one filing and 2.98 in another after the 4-for-1 split. Growth is scored on revenue and net income, which splits cannot distort.",
-      "The score refuses to invent results where data is missing: unavailable metrics are dropped, the remaining weights in that pillar are renormalized, and the exclusions are disclosed on each company's page. This caught negative book equity at Home Depot and AbbVie, where a negative debt-to-equity had been clamping to a perfect leverage score and overstating AbbVie by four points.",
-      "The resulting ranking is the clearest evidence of the method's own weakness, which is the point. The top four are all asset-light software and advertising businesses while Walmart lands 18th, because absolute thresholds measure the business model more than how well the company is run. Peer-relative scoring is the next module.",
-      "Full threshold table, fiscal-year convention and known limitations are published in the report and README, so any score can be recalculated or argued with. Backed by 26 tests covering the negative-equity, zero-interest, weight-renormalization and currency-resolution edge cases."
-    ]
-  },
-  {
-    "title": "Institutional-Style Valuation Engine",
-    "description": "Valuation engine for Nifty (NSE) companies in INR, plus a Quick DCF mode for any listed company worldwide. Stages 1 to 7 run end to end: historical assumptions, forecast, FCFF, WACC, a discounted cash flow, comparable-company valuation, bull/base/bear scenarios with sensitivity tables, and Monte Carlo with a blended cross-method summary. A real error in the cost of capital was found and fixed along the way; the gap that remained afterward is reported rather than tuned away.",
-    "tags": [
-      "Finance",
-      "Python",
-      "Valuation",
-      "DCF",
-      "WACC",
-      "Comparables",
-      "Monte Carlo",
-      "Streamlit",
-      "NSE / Nifty"
-    ],
-    "repo": "https://github.com/kaotekwarrushikesh-dotcom/valuation-engine",
-    "demo": "https://valuation-engine-zm5h2bwkjxtsshjxzccxag.streamlit.app",
-    "status": "complete",
-    "date": "2026-08-20",
-    "highlights": [
-      "The DCF read below market on every one of 32 companies, a median of -74.7%. The first diagnosis published for it was wrong, and finding that out is the useful part: the story was that a GDP-capped terminal growth rate was starving the terminal value, which fitted the handful of examples that suggested it. Testing it across the whole universe killed it. The companies pinned at the highest growth the model allows read worst, not best (UltraTech -97.6%, Titan -92.7%), and raising every company to the ceiling moved the median only 8 points while the standard competitive-equilibrium fix made it worse.",
-      "The real error was in the cost of capital: India's country risk was being charged twice. The cost of equity used the rupee 10-year government yield plus a 7.5% total equity risk premium, but that premium is a mature-market premium plus an India country premium, and a total premium of that construction belongs on a default-free rate. The rupee 10-year is not one, and the 269bp it yields over the US 10-year is precisely the market's price of the inflation differential and sovereign risk the country premium then charges for again. Stripping the default spread before CAPM moved median WACC from 13.34% to 11.17% and closed 15 points of the gap.",
-      "The previous defence of that 7.5% premium is why the error survived as long as it did. It checked the rupee build against a dollar build (Treasury + mature premium + country premium, inflation-adjusted), got 14.5% both ways, and concluded the number was sound. Both routes added the country premium, so agreeing with each other confirmed only that the same mistake had been made twice. A check that cannot fail is not a check. The two routes now agree within 70bp rather than disagreeing by 250bp.",
-      "The remaining gap is reported, not closed. A -59.9% median is still a long way from fair value, and it concentrates in two groups: capital-intensive companies earning less on capital than their cost of capital, where the reinvestment identity charges UltraTech 88% of NOPAT to fund GDP-rate growth and a DCF is arguably the wrong instrument for a cyclical; and richly-rated consumer franchises, where the original terminal-value intuition may still be part of the answer even though it failed as a universe-wide explanation. Nothing was tuned to make the numbers agree.",
-      "Comparable-company valuation is what made any of this diagnosable. It prices a company off what the market pays for its sector peers rather than off its own forecast, so it shares almost none of the DCF's machinery and carries no discount rate at all, which makes it a fixed benchmark across the whole investigation: +2.9% median throughout, against the DCF's -74.7% before and -59.9% after. Two methods built on the same statements moving apart rather than together is what ruled out a data bug from the start. For TCS the two now agree within 7% of the current price, where before they were 17 points apart.",
-      "Stage 7's Monte Carlo takes every distribution width from something measured rather than chosen, because a Monte Carlo with invented variances is the modeller's guess with error bars drawn on it and looks far more authoritative than the guess did alone. Growth and margin dispersion come from the company's own history; the discount rate's uncertainty is propagated from the regression standard error of beta, so a poorly estimated beta produces a genuinely wider valuation; and terminal growth, the one driver describing a period that has not happened, gets a bounded uniform rather than an invented mean and variance.",
-      "Growth and margin are drawn correlated, because operating leverage ties them together in a downturn and drawing them independently would let good growth pair with bad margin as often as bad with bad, cancelling much of the tail. Narrowness produced by a modelling shortcut is indistinguishable from precision, which is the specific way this kind of model misleads. Failed trials, where drawn terminal growth exceeds drawn WACC and the perpetuity has no finite value, are counted rather than dropped: discarding them would remove exactly the bad draws and bias the reported distribution upward.",
-      "The headline output is a probability, not a number: the share of trials valuing the company above its current price. Percentiles rather than the mean are reported, because the Gordon-growth denominator produces a long right tail as drawn terminal growth approaches drawn WACC, and the mean sits where no trial clusters.",
-      "The final summary reports a range and refuses to average the DCF and comparables when they span more than 40% of the current price. A DCF at -60% and comparables at +3% have a midpoint near -30%, and no analysis supports -30%; the disagreement is the result. Monte Carlo's median is carried as context rather than as a third method, since it is the same DCF sampled over its own inputs and would double-count that view against the one genuinely independent method.",
-      "Quick DCF mode values any listed company worldwide from a typed name, fetched live, with the currency-resolution logic that handles London quotes in pence, companies reporting in one currency and trading in another, and currency flags that are simply wrong. It deliberately offers no comparables, because real sector peers do not exist for an arbitrary company the way they do for the curated 33, and an auto-discovered peer group would quietly break the one property that made the calibration work possible.",
-      "Earlier fixes kept in the record: terminal reinvestment made consistent with terminal growth across the whole forecast rather than only the final year (which moved Reliance from an unusable 22 rupees a share to 323), FCFF built unlevered so the debt tax shield is not counted twice against WACC, working capital anchored on the recent level rather than a ten-year median that described no state the business was ever in, and negative equity value floored at zero for display since no equity trades below zero under limited liability.",
-      "100 tests across the seven stages, covering the reinvestment identity, currency resolution in both directions, multiple exclusion on negative denominators, scenario independence, sensitivity-grid monotonicity, the negative-equity floor, the Cholesky correlation surviving the draw, and the blended summary refusing to average methods that disagree."
-    ]
-  },
-  {
     "title": "Live Institutional Risk Engine",
     "description": "A live risk-monitoring engine: any listed company or benchmark in, market risk recalculated on demand, through an interactive dashboard. All 14 phases are built: tiered data validation, volatility, beta, drawdown, Value at Risk by three independent methods, Expected Shortfall, GARCH(1,1) conditional volatility, formal VaR backtesting, portfolio risk, and fundamental and valuation risk that reuse the other two engines rather than reimplementing them. The final phase combines all three into one composite view that names where they disagree, which turned out to be the actual point of building it.",
     "tags": [
@@ -93,6 +33,35 @@
       "A pathology found and suppressed rather than displayed: the GARCH model-implied long-run volatility came out at 48.6% annualised for the S&P against a realised 18.1%. The figure follows correctly from the fitted parameters and is meaningless, because it divides by one minus persistence, which is 0.002 here, and moving persistence from 0.995 to 0.999 swings the answer from 31% to 69%. It is now flagged unreliable and realised volatility is used as the benchmark instead, a measurement rather than an extrapolation.",
       "248 tests across the thirteen phases built, split by a marker so the market-risk suite still runs without the other two engines installed. Several were cases where the test was right and the code was wrong: the reverse-stress solver gave up whenever the top of its search range was unsolvable, which is the cell most likely to fail since it sits closest to where the perpetuity formula breaks down.",
       "The final phase (14) combines market, fundamental and valuation risk onto one scale rather than stopping at three separate readings, and the composite score turned out to be the least interesting thing it produces: the useful output is naming where the three disagree. Verified against the exact cases the earlier phases had already characterised, independently and without retuning anything for the demo. Apple shows genuine three-way agreement and correctly raises no divergence. Pfizer fires the dangerous one, fundamental risk (52) exceeding market risk (26) while 71% of its valuation sits in a terminal value assuming trend continuation against a deterioration score of 67, reproducing the same post-pandemic finding Phase 9 reached entirely on its own. Tesla shows the opposite pattern, extreme market risk (96) over modest fundamentals (25), the safer direction to be wrong in. A dimension that cannot be computed, such as an index with no filings, is dropped and the remaining weights renormalised rather than scored as safe, the same rule Module 1's health score applies to a missing metric."
+    ]
+  },
+  {
+    "title": "Portfolio Construction & Investment Management Engine",
+    "description": "Multi-asset portfolio construction, optimisation, risk and simulation platform on one assumption tree. The first module in this platform to depend on another module's package at the code level: it reuses the Live Institutional Risk Engine's own portfolio volatility, risk contribution, VaR and Expected Shortfall machinery rather than reimplementing it, and adds four constrained optimisation methods, a real efficient frontier, Monte Carlo simulation, stress testing and rebalancing on top.",
+    "tags": [
+      "Finance",
+      "Python",
+      "Portfolio Management",
+      "Optimization",
+      "Monte Carlo",
+      "Risk",
+      "Streamlit",
+      "scipy"
+    ],
+    "repo": "https://github.com/kaotekwarrushikesh-dotcom/portfolio-management-engine",
+    "demo": "",
+    "status": "complete",
+    "date": "2026-09-03",
+    "highlights": [
+      "Reuses risk_engine.portfolio and risk_engine.var_*/expected_shortfall — the already-built, already-tested Live Institutional Risk Engine — for portfolio volatility, Euler risk contribution, diversification ratio, Sharpe, drawdown and Herfindahl concentration, installed straight from that repository as a dependency rather than re-derived a second time.",
+      "All four optimisation methods (equal weight, minimum variance, maximum Sharpe, target return) route through scipy's constrained SLSQP solver rather than a closed-form matrix inversion, because a closed form cannot express the weight bounds, asset-class caps and long-only constraints this engine actually exposes as user inputs. The efficient frontier is 25 independently solved optimisations, not a smoothed curve between two points.",
+      "Found and fixed a real scipy bug: minimize()'s own args tuple is forwarded only to the objective function, never to functions in the constraints list. The target-return constraint originally expected extra positional arguments scipy never supplies; the fix closes over the needed values with default parameters instead, now the documented pattern for every constraint in the module.",
+      "Monte Carlo simulation offers both a bootstrap draw, which resamples whole historical days jointly across assets and, as a structural consequence, can never simulate a day worse than history's actual worst — verified directly by a dedicated test — and a parametric draw from the covariance matrix, which can exceed history's worst day but inherits the normal distribution's own understatement of extreme moves. Neither is presented as more correct than the other.",
+      "A user-supplied correlation matrix is checked for positive semi-definiteness before use: mutually inconsistent pairwise correlations (two pairs near +1 while the third is near -1) imply negative portfolio variance, a contradiction rather than a modelling choice, and are refused rather than silently accepted. Absent any correlation input, the engine defaults to independence and discloses that as a stated assumption rather than fabricating a plausible market-typical number.",
+      "Portfolio weights that don't sum to 100% are refused rather than silently renormalised, because renormalising would quietly change the portfolio the user thinks they specified — the same refuse-don't-guess discipline as every assumption in this platform.",
+      "Rebalancing costs are charged on the gross value traded, not netted: a buy in one asset offsetting a sell in another on paper still means two real trades, and both incur cost.",
+      "Verified live against five years of real daily prices for Apple, Microsoft, a 20+ Year Treasury ETF and Gold: 14.5% volatility, a 1.56 diversification ratio, a 99% historical VaR of 2.23% against a 2.69% Expected Shortfall (1.21x), and a largest risk contributor (AAPL, 37.8% of risk) that differs from the largest position by weight (25.0%) — the same weight-versus-risk finding the risk engine exists to surface. All twelve tabs (Dashboard through Audit) run with no exception against this data.",
+      "86 tests across the assumption engine, data layer, risk, optimization, simulation, stress, rebalancing, benchmark comparison and validation, including five test-construction bugs caught and fixed on the first full run — each one verified against the underlying calculation before the assertion was changed, not the other way around."
     ]
   },
   {
@@ -146,6 +115,66 @@
       "Tools never raise at the model. Every call returns a result object, and a failure is a result carrying a readable reason rather than an exception. An exception gives a model nothing true to say and invites it to fill the silence, which is exactly the hallucination the architecture exists to prevent; an invented tool name gets back the list of real ones instead of a crash.",
       "Each engine's own caveats travel with its numbers, because the model will never read a README. The valuation always carries the finding that its DCF reads below market and must not be quoted alone. Value at Risk returns all three methods together, since they disagree in a structured way and handing over one number invites it to be reported as the risk. Unconditional figures say they are unconditional, and market data is classified delayed or stale, never live.",
       "22 tests split by a live marker: 16 offline tests pin the provenance rules and the never-raise guarantee, and 6 live tests are deliberately not mocked, because a tool layer tested only against mocks proves the mocks work. The live set imports all three engines in one process, runs real valuations and VaR, and checks the same tool works for more than one company."
+    ]
+  },
+  {
+    "title": "Institutional-Style Valuation Engine",
+    "description": "Valuation engine for Nifty (NSE) companies in INR, plus a Quick DCF mode for any listed company worldwide. Stages 1 to 7 run end to end: historical assumptions, forecast, FCFF, WACC, a discounted cash flow, comparable-company valuation, bull/base/bear scenarios with sensitivity tables, and Monte Carlo with a blended cross-method summary. A real error in the cost of capital was found and fixed along the way; the gap that remained afterward is reported rather than tuned away.",
+    "tags": [
+      "Finance",
+      "Python",
+      "Valuation",
+      "DCF",
+      "WACC",
+      "Comparables",
+      "Monte Carlo",
+      "Streamlit",
+      "NSE / Nifty"
+    ],
+    "repo": "https://github.com/kaotekwarrushikesh-dotcom/valuation-engine",
+    "demo": "https://valuation-engine-zm5h2bwkjxtsshjxzccxag.streamlit.app",
+    "status": "complete",
+    "date": "2026-08-20",
+    "highlights": [
+      "The DCF read below market on every one of 32 companies, a median of -74.7%. The first diagnosis published for it was wrong, and finding that out is the useful part: the story was that a GDP-capped terminal growth rate was starving the terminal value, which fitted the handful of examples that suggested it. Testing it across the whole universe killed it. The companies pinned at the highest growth the model allows read worst, not best (UltraTech -97.6%, Titan -92.7%), and raising every company to the ceiling moved the median only 8 points while the standard competitive-equilibrium fix made it worse.",
+      "The real error was in the cost of capital: India's country risk was being charged twice. The cost of equity used the rupee 10-year government yield plus a 7.5% total equity risk premium, but that premium is a mature-market premium plus an India country premium, and a total premium of that construction belongs on a default-free rate. The rupee 10-year is not one, and the 269bp it yields over the US 10-year is precisely the market's price of the inflation differential and sovereign risk the country premium then charges for again. Stripping the default spread before CAPM moved median WACC from 13.34% to 11.17% and closed 15 points of the gap.",
+      "The previous defence of that 7.5% premium is why the error survived as long as it did. It checked the rupee build against a dollar build (Treasury + mature premium + country premium, inflation-adjusted), got 14.5% both ways, and concluded the number was sound. Both routes added the country premium, so agreeing with each other confirmed only that the same mistake had been made twice. A check that cannot fail is not a check. The two routes now agree within 70bp rather than disagreeing by 250bp.",
+      "The remaining gap is reported, not closed. A -59.9% median is still a long way from fair value, and it concentrates in two groups: capital-intensive companies earning less on capital than their cost of capital, where the reinvestment identity charges UltraTech 88% of NOPAT to fund GDP-rate growth and a DCF is arguably the wrong instrument for a cyclical; and richly-rated consumer franchises, where the original terminal-value intuition may still be part of the answer even though it failed as a universe-wide explanation. Nothing was tuned to make the numbers agree.",
+      "Comparable-company valuation is what made any of this diagnosable. It prices a company off what the market pays for its sector peers rather than off its own forecast, so it shares almost none of the DCF's machinery and carries no discount rate at all, which makes it a fixed benchmark across the whole investigation: +2.9% median throughout, against the DCF's -74.7% before and -59.9% after. Two methods built on the same statements moving apart rather than together is what ruled out a data bug from the start. For TCS the two now agree within 7% of the current price, where before they were 17 points apart.",
+      "Stage 7's Monte Carlo takes every distribution width from something measured rather than chosen, because a Monte Carlo with invented variances is the modeller's guess with error bars drawn on it and looks far more authoritative than the guess did alone. Growth and margin dispersion come from the company's own history; the discount rate's uncertainty is propagated from the regression standard error of beta, so a poorly estimated beta produces a genuinely wider valuation; and terminal growth, the one driver describing a period that has not happened, gets a bounded uniform rather than an invented mean and variance.",
+      "Growth and margin are drawn correlated, because operating leverage ties them together in a downturn and drawing them independently would let good growth pair with bad margin as often as bad with bad, cancelling much of the tail. Narrowness produced by a modelling shortcut is indistinguishable from precision, which is the specific way this kind of model misleads. Failed trials, where drawn terminal growth exceeds drawn WACC and the perpetuity has no finite value, are counted rather than dropped: discarding them would remove exactly the bad draws and bias the reported distribution upward.",
+      "The headline output is a probability, not a number: the share of trials valuing the company above its current price. Percentiles rather than the mean are reported, because the Gordon-growth denominator produces a long right tail as drawn terminal growth approaches drawn WACC, and the mean sits where no trial clusters.",
+      "The final summary reports a range and refuses to average the DCF and comparables when they span more than 40% of the current price. A DCF at -60% and comparables at +3% have a midpoint near -30%, and no analysis supports -30%; the disagreement is the result. Monte Carlo's median is carried as context rather than as a third method, since it is the same DCF sampled over its own inputs and would double-count that view against the one genuinely independent method.",
+      "Quick DCF mode values any listed company worldwide from a typed name, fetched live, with the currency-resolution logic that handles London quotes in pence, companies reporting in one currency and trading in another, and currency flags that are simply wrong. It deliberately offers no comparables, because real sector peers do not exist for an arbitrary company the way they do for the curated 33, and an auto-discovered peer group would quietly break the one property that made the calibration work possible.",
+      "Earlier fixes kept in the record: terminal reinvestment made consistent with terminal growth across the whole forecast rather than only the final year (which moved Reliance from an unusable 22 rupees a share to 323), FCFF built unlevered so the debt tax shield is not counted twice against WACC, working capital anchored on the recent level rather than a ten-year median that described no state the business was ever in, and negative equity value floored at zero for display since no equity trades below zero under limited liability.",
+      "100 tests across the seven stages, covering the reinvestment identity, currency resolution in both directions, multiple exclusion on negative denominators, scenario independence, sensitivity-grid monotonicity, the negative-equity floor, the Cholesky correlation surviving the draw, and the blended summary refusing to average methods that disagree."
+    ]
+  },
+  {
+    "title": "Financial Statement Intelligence Engine",
+    "description": "Type a company name, get its financial health, in any market: US, Europe, India, Japan. US listings use 10 years of SEC EDGAR filings; everywhere else uses Yahoo Finance. Also runs as a 20-company batch producing a 23-page report.",
+    "tags": [
+      "Finance",
+      "Python",
+      "Streamlit",
+      "SEC EDGAR",
+      "Yahoo Finance"
+    ],
+    "repo": "https://github.com/kaotekwarrushikesh-dotcom/financial-statement-intelligence",
+    "demo": "https://financial-statement-intelligence-rt6flmexrx7imct8iuafdi.streamlit.app",
+    "status": "complete",
+    "date": "2026-08-16",
+    "highlights": [
+      "Works for any listed company, not a fixed list. A Streamlit app takes a name or ticker, resolves it (including cross-listings, which it shows rather than silently picking one), and scores it live. Verified across five markets: Apple through EDGAR at 10 years, ASML, Shell, Nestle and Reliance through Yahoo Finance.",
+      "Currency is where a global loader silently produces a plausible wrong answer instead of an error, and three traps are handled: London quotes in pence, not pounds (Shell's \"3320.0\" GBp read as GBP overstates the price 100x); the reporting currency is not always the quote currency (Infosys reports in USD, trades in INR); and the currency flag itself lies in both directions (HCL Technologies is tagged USD while reporting in rupees). The check is market capitalisation, which is unambiguously in the quote currency — except between currencies of similar size (USD vs GBP at 0.79), where that test can't discriminate and the source's own tag is used instead.",
+      "Foreign issuers file 20-F, not 10-K, so EDGAR returns nothing for Shell or SAP despite both being US-listed. The loader falls back to Yahoo Finance automatically rather than failing.",
+      "Every figure comes from filed 10-K data via the SEC EDGAR XBRL API for US companies, across 20 companies and 10 fiscal years in the batch report. Nothing is hand-entered, and the spot checks tie out to the filings (NVIDIA FY2025 revenue $130.5B, Microsoft FY2025 $281.7B, Tesla 2024 $97.69B).",
+      "Most of the engineering went into making EDGAR usable. Companies migrate between GAAP tags mid-history after ASC 606, so values are merged across an ordered list of candidate tags rather than taken from the first tag that returns anything, which took NVIDIA and Tesla from 6 usable years to 10.",
+      "Oil majors and several pharma companies never tag an operating income line, so EBIT is rebuilt from pretax income plus interest expense. Without that fallback, Exxon, Chevron, J&J, Merck and Pfizer produced no usable years at all.",
+      "EPS growth is deliberately excluded from the score. A 10-K restates only the roughly three years it covers, so Apple's FY2018 EPS reads 11.91 in one filing and 2.98 in another after the 4-for-1 split. Growth is scored on revenue and net income, which splits cannot distort.",
+      "The score refuses to invent results where data is missing: unavailable metrics are dropped, the remaining weights in that pillar are renormalized, and the exclusions are disclosed on each company's page. This caught negative book equity at Home Depot and AbbVie, where a negative debt-to-equity had been clamping to a perfect leverage score and overstating AbbVie by four points.",
+      "The resulting ranking is the clearest evidence of the method's own weakness, which is the point. The top four are all asset-light software and advertising businesses while Walmart lands 18th, because absolute thresholds measure the business model more than how well the company is run. Peer-relative scoring is the next module.",
+      "Full threshold table, fiscal-year convention and known limitations are published in the report and README, so any score can be recalculated or argued with. Backed by 26 tests covering the negative-equity, zero-interest, weight-renormalization and currency-resolution edge cases."
     ]
   },
   {
