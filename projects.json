@@ -152,20 +152,24 @@
   },
   {
     "title": "AI Financial Analyst",
-    "description": "An AI analyst that sits on top of the other three engines rather than beside them. The LLM decides what analysis a question needs and calls deterministic Python tools to get it; it never calculates a financial figure itself. Phase 1 of 16 is built: Modules 1, 2 and 3 are integrated behind one tool interface of 16 tools, each result tagged with whether it is a filed fact, a model calculation or a model assumption. The agent, RAG and dashboard are still to come.",
+    "description": "An AI analyst that sits on top of the other three engines rather than beside them. The LLM decides what analysis a question needs and calls deterministic Python tools to get it; it never calculates a financial figure itself. Phases 1 and 2 of 16 are built: Modules 1, 2 and 3 are integrated behind one tool interface of 16 tools, each result tagged with whether it is a filed fact, a model calculation or a model assumption, with a fetch cache underneath so a question touching nine tools costs five fetches rather than twenty. The agent, RAG and dashboard are still to come.",
     "tags": [
       "Finance",
       "Python",
       "LLM",
       "Tool Calling",
       "RAG",
-      "Packaging"
+      "Packaging",
+      "Caching"
     ],
     "repo": "https://github.com/kaotekwarrushikesh-dotcom/ai-financial-analyst",
     "demo": "",
     "status": "in progress",
     "date": "2026-08-21",
     "highlights": [
+      "Phase 2 put the cache at the four functions that actually reach the network rather than at the tool layer above them, because those four are the only places data enters the module. Every tool benefits without knowing the cache exists, and no tool can bypass it by taking a different route to the same data. A test asserts the wrapped set is exactly those four, so an adapter that later grows a fifth network path fails the suite instead of quietly costing a fetch. Measured on a nine-tool sweep of one company: twenty calls reaching those seams, actual fetches down from twenty to five, and a repeat sweep about twenty times faster.",
+      "The cache window is set by the freshest field in a payload, not the stalest. Caching filed statements for a day is tempting since a 10-K is stable for months, but Module 1 returns ten years of statements and a live share price in the same object, so the whole thing inherits the share price's shelf life. The default is 900 seconds, matching the TTL the deployed Streamlit apps already use, so a number does not have one staleness in the app and a different one here. Failures are never cached either: a cached exception would turn a momentary network blip into a full window of downtime, which is the wrong trade for data this cheap to retry.",
+      "Measuring the cache surfaced a duplicate-fetch bug worth keeping in the record. Different tools spell the same request differently, some passing the history period explicitly and some relying on its default, which keyed as two separate entries for byte-identical data. Cache keys are now built by binding each call against the function's real signature and applying defaults, so every spelling of one request collapses onto one key.",
       "The differentiator is what the LLM is not allowed to do. It selects tools and interprets results; every ratio, DCF, WACC, VaR and GARCH figure is computed by the existing Python engines and handed back. That makes the numbers reproducible and auditable rather than generated, which is the difference between a financial analyst and a chatbot with a finance vocabulary.",
       "Integration was blocked by something no adapter code could fix: all three engines shipped a top-level package literally named \"src\", so Python resolves whichever appears first on the path and the other two become unreachable. The easy way out was vendoring copies into the new repo, which is how the analyst quietly becomes a fourth, divergent implementation of the same finance. Each engine was renamed to its own namespace and given packaging metadata instead, and the analyst now pins them as git dependencies, so a fix in an engine reaches it without anything being copied.",
       "Two supporting problems surfaced during that work and were fixed rather than worked around. The risk engine reached into a sibling config directory through a sys.path insert, which works from a checkout and breaks the moment the package is installed. The valuation engine's entire pipeline lived inside its Streamlit app behind a cache decorator, so importing it ran page setup and tied a library's caching policy to the lifetime of a browser tab; the calculation moved into the package and the app now imports it and applies its own caching.",
