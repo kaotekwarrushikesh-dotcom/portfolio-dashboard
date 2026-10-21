@@ -6,7 +6,6 @@ const filtersEl = document.getElementById('filters');
 const searchEl = document.getElementById('search');
 const emptyEl = document.getElementById('empty-state');
 const statsEl = document.getElementById('stats');
-const stackEl = document.getElementById('stack-cloud');
 const navEl = document.getElementById('nav');
 const backdrop = document.getElementById('modal-backdrop');
 const modalBody = document.getElementById('modal-body');
@@ -309,12 +308,9 @@ function restoreStateFromUrl() {
   const tag = params.get('tag');
   const query = params.get('q');
   if (query) searchEl.value = query;
-  if (tag) {
-    activeTag = tag.toLowerCase();
-    for (const c of filtersEl.children) {
-      c.setAttribute('aria-pressed', String((c.dataset.key || null) === activeTag));
-    }
-  }
+  /* Only reads. renderFilters paints the pressed state from activeTag, and it has to run
+   * after this so that a linked tag below the chip threshold still gets a chip. */
+  if (tag) activeTag = tag.toLowerCase();
 }
 
 function render() {
@@ -331,16 +327,30 @@ function render() {
   syncUrl();
 }
 
+/* A tag earns a chip only once it is shared by this many projects.
+ *
+ * Every tag used to get one, which produced five rows of chips above the grid, and 23 of
+ * the 30 sat on exactly one project. A filter that narrows seven cards to one is not a
+ * filter, it is a label, and the search box already does that job better. Nothing is lost
+ * by dropping them: single-use tags stay on their card, in the detail view, and in the
+ * search index, which reads over tags as well as titles and highlights. */
+const MIN_PROJECTS_PER_CHIP = 2;
+
 function renderFilters() {
   const counts = new Map();
   for (const p of projects) {
     for (const t of p.tags || []) counts.set(t, (counts.get(t) || 0) + 1);
   }
-  const tags = [...counts.keys()].sort((a, b) => counts.get(b) - counts.get(a) || a.localeCompare(b));
+  const tags = [...counts.keys()]
+    .filter((t) => counts.get(t) >= MIN_PROJECTS_PER_CHIP
+      /* A shared or bookmarked ?tag= link may name a tag that no longer earns a chip. Without
+       * this the grid comes up filtered with no pressed chip and no visible way to clear it. */
+      || t.toLowerCase() === activeTag)
+    .sort((a, b) => counts.get(b) - counts.get(a) || a.localeCompare(b));
 
   const all = el('button', 'filter-chip', 'All');
   all.type = 'button';
-  all.setAttribute('aria-pressed', 'true');
+  all.setAttribute('aria-pressed', String(!activeTag));
   all.dataset.key = '';
   filtersEl.replaceChildren(all);
 
@@ -348,7 +358,7 @@ function renderFilters() {
     const chip = el('button', 'filter-chip', tag);
     chip.type = 'button';
     chip.dataset.key = tag.toLowerCase();
-    chip.setAttribute('aria-pressed', 'false');
+    chip.setAttribute('aria-pressed', String(chip.dataset.key === activeTag));
     filtersEl.appendChild(chip);
   }
 
@@ -366,22 +376,6 @@ filtersEl.addEventListener('click', (e) => {
   }
   render();
 });
-
-function renderStack() {
-  const counts = new Map();
-  for (const p of projects) {
-    for (const t of p.tags || []) counts.set(t, (counts.get(t) || 0) + 1);
-  }
-  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-
-  stackEl.replaceChildren(
-    ...sorted.map(([name, count]) => {
-      const item = el('div', 'stack-item');
-      item.append(el('span', null, name), el('span', 'stack-count', String(count)));
-      return item;
-    })
-  );
-}
 
 searchEl.addEventListener('input', render);
 
@@ -637,7 +631,6 @@ addBtn.addEventListener('click', () => openForm(null));
 function refreshAll() {
   renderStats();
   renderFilters();
-  renderStack();
   render();
 }
 
@@ -707,9 +700,8 @@ fetch(`projects.json?v=${Date.now()}`)
     projects = data.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     addBtn.hidden = !IS_LOCAL;
     renderStats();
-    renderFilters();
-    renderStack();
     restoreStateFromUrl();
+    renderFilters();
     render();
     observeReveals();
     upgradeToLiveActivity();
