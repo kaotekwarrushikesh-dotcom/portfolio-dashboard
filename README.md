@@ -22,7 +22,7 @@ This button only appears when the site is running on localhost. If you deploy it
 
 If your browser does not support writing files directly (Safari, Firefox), Save instead downloads an updated `projects.json` for you to drop back into the project folder.
 
-Either way, the stat counters and filter chips recompute themselves automatically.
+Either way, the stat counters recompute themselves automatically.
 
 ## Adding a project: the command line
 
@@ -52,7 +52,7 @@ Writes are atomic: the file is written to a temp path and then moved into place,
 | --- | --- |
 | `title` | The name an interviewer scans first |
 | `description` | One or two sentences. This is the card text |
-| `tags` | Any strings. `Finance` and `Interview` get their own colors. A tag shared by two or more projects becomes a filter chip; rarer ones stay on the card and remain searchable |
+| `tags` | Any strings. Not displayed on the page, but searchable, and `Finance` drives the "Finance builds" counter |
 | `repo` | GitHub URL, or empty to hide the link |
 | `demo` | Live URL, or empty to hide the link |
 | `status` | `complete` shows green, `learning` and `in progress` show amber, `planned` shows grey |
@@ -65,13 +65,15 @@ Cards are the hook, the popup is the substance. Interviewers skim cards, then op
 
 Prefer "caches daily bars so repeat screens skip the API" over "uses caching for performance."
 
-## Shareable filtered views
+## Shareable searches
 
-Filter state lives in the URL. Selecting the Finance chip gives you `?tag=finance`, and searching adds `&q=...`. That link reopens with the same filter applied, so you can send someone straight to a subset:
+The search box lives in the URL as `?q=...`, so a link reopens with the same search applied and you can send someone straight to a subset:
 
 ```
-http://localhost:8000/?tag=finance
+http://localhost:8000/?q=risk
 ```
+
+Tags are no longer drawn on the cards, in the popup or as filter chips, to keep the page uncluttered. They stay in `projects.json` and in the search text, so searching a tool or concept still finds every project that uses it. An old `?tag=` link is simply ignored.
 
 ## If something breaks
 

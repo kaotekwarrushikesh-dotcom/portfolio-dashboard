@@ -9,7 +9,7 @@
 <!-- Version query busts the browser cache on deploy. Without it a returning
      visitor keeps the previously cached CSS and JS after a push, which on a static
      site with no build step means they see a stale version of the page. Bump on release. -->
-<link rel="stylesheet" href="styles.css?v=20260828" />
+<link rel="stylesheet" href="styles.css?v=20261119" />
 <script>
   // Set the theme before first paint so there is no flash of the wrong theme.
   //
@@ -92,7 +92,7 @@
       <div>
         <span class="section-tag">Portfolio</span>
         <h2>Selected projects</h2>
-        <p>Filter by technology or focus area. Select any card for the full breakdown.</p>
+        <p>Search by project or topic. Select any card for the full breakdown.</p>
       </div>
       <button id="add-project" class="btn btn-primary" type="button" hidden>
         <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M10 4v12M4 10h12" stroke-linecap="round" /></svg>
@@ -107,7 +107,6 @@
         </svg>
         <input id="search" type="search" placeholder="Search projects, tools, concepts..." aria-label="Search projects" />
       </div>
-      <div id="filters" class="filters" role="group" aria-label="Filter by tag"></div>
     </div>
 
     <div id="project-grid" class="project-grid" aria-live="polite"></div>
@@ -219,6 +218,6 @@
 <div class="toast" id="toast" hidden></div>
 
 <script src="live.js?v=20260828"></script>
-<script src="app.js?v=20260828"></script>
+<script src="app.js?v=20261119"></script>
 </body>
 </html>

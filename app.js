@@ -2,7 +2,6 @@
    Element refs
    ============================================================ */
 const grid = document.getElementById('project-grid');
-const filtersEl = document.getElementById('filters');
 const searchEl = document.getElementById('search');
 const emptyEl = document.getElementById('empty-state');
 const statsEl = document.getElementById('stats');
@@ -11,7 +10,6 @@ const backdrop = document.getElementById('modal-backdrop');
 const modalBody = document.getElementById('modal-body');
 
 let projects = [];
-let activeTag = null;
 let lastFocused = null;
 
 const ARROW = '<svg viewBox="0 0 20 20" width="14" height="14" aria-hidden="true"><path d="M4 10h11M11 6l4 4-4 4"/></svg>';
@@ -24,12 +22,6 @@ function el(tag, className, text) {
   if (className) node.className = className;
   if (text) node.textContent = text;
   return node;
-}
-
-function tagChip(label) {
-  const t = el('span', 'tag', label);
-  t.dataset.tag = label.toLowerCase();
-  return t;
 }
 
 function statusBadge(status) {
@@ -168,12 +160,6 @@ function renderCard(project, index) {
 
   card.appendChild(el('p', 'card-desc', project.description));
 
-  if (project.tags?.length) {
-    const row = el('div', 'tag-row');
-    project.tags.forEach((t) => row.appendChild(tagChip(t)));
-    card.appendChild(row);
-  }
-
   const foot = el('div', 'card-foot');
   // The static date renders immediately and is replaced by the real push date once GitHub
   // answers. Tagging the element by repo lets that happen in place, without a re-render that
@@ -223,14 +209,6 @@ function openModal(project) {
     const ul = el('ul', 'modal-highlights');
     project.highlights.forEach((h) => ul.appendChild(el('li', null, h)));
     modalBody.appendChild(ul);
-  }
-
-  if (project.tags?.length) {
-    modalBody.appendChild(el('div', 'modal-section-label', 'Built with'));
-    const row = el('div', 'tag-row');
-    project.tags.forEach((t) => row.appendChild(tagChip(t)));
-    row.style.marginBottom = '4px';
-    modalBody.appendChild(row);
   }
 
   const actions = el('div', 'modal-actions');
@@ -295,87 +273,29 @@ document.addEventListener('keydown', (e) => {
    Filtering
    ============================================================ */
 function syncUrl() {
-  const params = new URLSearchParams();
-  if (activeTag) params.set('tag', activeTag);
   const query = searchEl.value.trim();
-  if (query) params.set('q', query);
-  const qs = params.toString();
-  history.replaceState(null, '', qs ? `?${qs}${location.hash}` : location.pathname + location.hash);
+  const qs = query ? `?${new URLSearchParams({ q: query })}` : '';
+  history.replaceState(null, '', qs ? `${qs}${location.hash}` : location.pathname + location.hash);
 }
 
 function restoreStateFromUrl() {
-  const params = new URLSearchParams(location.search);
-  const tag = params.get('tag');
-  const query = params.get('q');
+  const query = new URLSearchParams(location.search).get('q');
   if (query) searchEl.value = query;
-  /* Only reads. renderFilters paints the pressed state from activeTag, and it has to run
-   * after this so that a linked tag below the chip threshold still gets a chip. */
-  if (tag) activeTag = tag.toLowerCase();
 }
 
 function render() {
   const query = searchEl.value.trim().toLowerCase();
+  // Tags are no longer drawn anywhere, but they stay in projects.json and in the search
+  // text, so typing "python" or "garch" still finds the projects that use them.
   const visible = projects.filter((p) => {
-    const tags = p.tags || [];
-    const matchesTag = !activeTag || tags.some((t) => t.toLowerCase() === activeTag);
-    const haystack = `${p.title} ${p.description} ${tags.join(' ')} ${(p.highlights || []).join(' ')}`.toLowerCase();
-    return matchesTag && haystack.includes(query);
+    const haystack = `${p.title} ${p.description} ${(p.tags || []).join(' ')} ${(p.highlights || []).join(' ')}`.toLowerCase();
+    return haystack.includes(query);
   });
 
   grid.replaceChildren(...visible.map(renderCard));
   emptyEl.hidden = visible.length > 0;
   syncUrl();
 }
-
-/* A tag earns a chip only once it is shared by this many projects.
- *
- * Every tag used to get one, which produced five rows of chips above the grid, and 23 of
- * the 30 sat on exactly one project. A filter that narrows seven cards to one is not a
- * filter, it is a label, and the search box already does that job better. Nothing is lost
- * by dropping them: single-use tags stay on their card, in the detail view, and in the
- * search index, which reads over tags as well as titles and highlights. */
-const MIN_PROJECTS_PER_CHIP = 2;
-
-function renderFilters() {
-  const counts = new Map();
-  for (const p of projects) {
-    for (const t of p.tags || []) counts.set(t, (counts.get(t) || 0) + 1);
-  }
-  const tags = [...counts.keys()]
-    .filter((t) => counts.get(t) >= MIN_PROJECTS_PER_CHIP
-      /* A shared or bookmarked ?tag= link may name a tag that no longer earns a chip. Without
-       * this the grid comes up filtered with no pressed chip and no visible way to clear it. */
-      || t.toLowerCase() === activeTag)
-    .sort((a, b) => counts.get(b) - counts.get(a) || a.localeCompare(b));
-
-  const all = el('button', 'filter-chip', 'All');
-  all.type = 'button';
-  all.setAttribute('aria-pressed', String(!activeTag));
-  all.dataset.key = '';
-  filtersEl.replaceChildren(all);
-
-  for (const tag of tags) {
-    const chip = el('button', 'filter-chip', tag);
-    chip.type = 'button';
-    chip.dataset.key = tag.toLowerCase();
-    chip.setAttribute('aria-pressed', String(chip.dataset.key === activeTag));
-    filtersEl.appendChild(chip);
-  }
-
-}
-
-// Delegated once at startup. Attaching inside renderFilters would stack up
-// duplicate listeners every time the list is rebuilt after an edit.
-filtersEl.addEventListener('click', (e) => {
-  const chip = e.target.closest('.filter-chip');
-  if (!chip) return;
-  const key = chip.dataset.key;
-  activeTag = key && key !== activeTag ? key : null;
-  for (const c of filtersEl.children) {
-    c.setAttribute('aria-pressed', String((c.dataset.key || null) === activeTag || (!activeTag && !c.dataset.key)));
-  }
-  render();
-});
 
 searchEl.addEventListener('input', render);
 
@@ -630,7 +550,6 @@ addBtn.addEventListener('click', () => openForm(null));
 
 function refreshAll() {
   renderStats();
-  renderFilters();
   render();
 }
 
@@ -701,7 +620,6 @@ fetch(`projects.json?v=${Date.now()}`)
     addBtn.hidden = !IS_LOCAL;
     renderStats();
     restoreStateFromUrl();
-    renderFilters();
     render();
     observeReveals();
     upgradeToLiveActivity();
