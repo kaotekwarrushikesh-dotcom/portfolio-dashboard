@@ -9,7 +9,7 @@
 <!-- Version query busts the browser cache on deploy. Without it a returning
      visitor keeps the previously cached CSS and JS after a push, which on a static
      site with no build step means they see a stale version of the page. Bump on release. -->
-<link rel="stylesheet" href="styles.css?v=20261119b" />
+<link rel="stylesheet" href="styles.css?v=20261119c" />
 <script>
   // Set the theme before first paint so there is no flash of the wrong theme.
   //
@@ -69,9 +69,6 @@
       A living record of what I build. Every project here started as something I did not know how to do yet.
       Weighted toward financial systems, market data, and the infrastructure underneath them.
     </p>
-    <!-- Filled in from the GitHub API after load, and hidden entirely if that fails, so the
-         hero never shows an empty or broken line. -->
-    <p class="live-activity reveal" id="live-activity" hidden></p>
     <div class="hero-actions reveal">
       <a class="btn btn-primary" href="#work">
         Browse the work
@@ -218,6 +215,6 @@
 <div class="toast" id="toast" hidden></div>
 
 <script src="live.js?v=20260828"></script>
-<script src="app.js?v=20261119b"></script>
+<script src="app.js?v=20261119c"></script>
 </body>
 </html>

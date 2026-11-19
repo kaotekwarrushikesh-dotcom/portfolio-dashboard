@@ -591,15 +591,6 @@ function upgradeToLiveActivity() {
       node.classList.add('is-live');
       node.title = `Last push to GitHub: ${new Date(activity.pushedAt).toLocaleString()}`;
     });
-
-    const latest = live.mostRecentPush(byRepo);
-    const banner = document.getElementById('live-activity');
-    if (latest && banner) {
-      const count = Object.keys(byRepo).length;
-      banner.textContent =
-        `${count} repositories tracked live · last commit ${live.relativeTime(latest)}`;
-      banner.hidden = false;
-    }
   });
 }
 
