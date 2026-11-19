@@ -9,7 +9,7 @@
 <!-- Version query busts the browser cache on deploy. Without it a returning
      visitor keeps the previously cached CSS and JS after a push, which on a static
      site with no build step means they see a stale version of the page. Bump on release. -->
-<link rel="stylesheet" href="styles.css?v=20261119" />
+<link rel="stylesheet" href="styles.css?v=20261119b" />
 <script>
   // Set the theme before first paint so there is no flash of the wrong theme.
   //
@@ -82,8 +82,8 @@
   </div>
 </header>
 
-<section class="stats-band">
-  <div class="stats-inner" id="stats"></div>
+<section class="progress-band" aria-label="Overall progress">
+  <div class="progress-inner" id="progress"></div>
 </section>
 
 <main>
@@ -218,6 +218,6 @@
 <div class="toast" id="toast" hidden></div>
 
 <script src="live.js?v=20260828"></script>
-<script src="app.js?v=20261119"></script>
+<script src="app.js?v=20261119b"></script>
 </body>
 </html>

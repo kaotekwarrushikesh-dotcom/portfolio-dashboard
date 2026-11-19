@@ -22,7 +22,7 @@ This button only appears when the site is running on localhost. If you deploy it
 
 If your browser does not support writing files directly (Safari, Firefox), Save instead downloads an updated `projects.json` for you to drop back into the project folder.
 
-Either way, the stat counters recompute themselves automatically.
+Either way, the progress bar recomputes itself automatically.
 
 ## Adding a project: the command line
 
@@ -52,10 +52,10 @@ Writes are atomic: the file is written to a temp path and then moved into place,
 | --- | --- |
 | `title` | The name an interviewer scans first |
 | `description` | One or two sentences. This is the card text |
-| `tags` | Any strings. Not displayed on the page, but searchable, and `Finance` drives the "Finance builds" counter |
+| `tags` | Any strings. Not displayed on the page, but searchable |
 | `repo` | GitHub URL, or empty to hide the link |
 | `demo` | Live URL, or empty to hide the link |
-| `status` | `complete` shows green, `learning` and `in progress` show amber, `planned` shows grey |
+| `status` | `complete` shows green, `learning` and `in progress` show amber, `planned` shows grey. The "Work completed" bar is the share of projects marked `complete` |
 | `date` | `YYYY-MM-DD`. Cards always sort newest first |
 | `highlights` | Bullet list shown in the detail popup. This is where the real content goes |
 

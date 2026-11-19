@@ -4,7 +4,7 @@
 const grid = document.getElementById('project-grid');
 const searchEl = document.getElementById('search');
 const emptyEl = document.getElementById('empty-state');
-const statsEl = document.getElementById('stats');
+const progressEl = document.getElementById('progress');
 const navEl = document.getElementById('nav');
 const backdrop = document.getElementById('modal-backdrop');
 const modalBody = document.getElementById('modal-body');
@@ -76,10 +76,18 @@ function observeReveals() {
 }
 
 /* ============================================================
-   Animated counters
+   Progress bar
+   Share of projects marked complete. It is derived from each project's
+   status, so changing a status in the editor moves the bar by itself.
    ============================================================ */
+const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 function countUp(node, target) {
-  const duration = 900;
+  if (REDUCED_MOTION) {
+    node.textContent = target;
+    return;
+  }
+  const duration = 1000;
   const start = performance.now();
   function frame(now) {
     const p = Math.min((now - start) / duration, 1);
@@ -90,41 +98,51 @@ function countUp(node, target) {
   requestAnimationFrame(frame);
 }
 
-function renderStats() {
-  const allTags = projects.flatMap((p) => p.tags || []);
-  const finance = projects.filter((p) => (p.tags || []).some((t) => t.toLowerCase() === 'finance'));
-  const completed = projects.filter((p) => (p.status || '').toLowerCase() === 'complete');
+function renderProgress() {
+  const status = (p) => (p.status || '').toLowerCase();
+  const total = projects.length;
+  const done = projects.filter((p) => status(p) === 'complete').length;
+  // "learning" shares the amber badge with "in progress", so the two read as one group here too.
+  const active = projects.filter((p) => ['in progress', 'learning'].includes(status(p))).length;
+  const planned = projects.filter((p) => status(p) === 'planned').length;
+  const pct = total ? Math.round((done / total) * 100) : 0;
 
-  const data = [
-    { value: projects.length, label: 'Projects' },
-    { value: finance.length, label: 'Finance builds' },
-    { value: new Set(allTags.map((t) => t.toLowerCase())).size, label: 'Technologies' },
-    // "Completed" rather than "Shipped": it matches the wording of the status badge on the
-    // cards, so the counter and the projects it counts read as the same thing.
-    { value: completed.length, label: 'Completed' },
-  ];
+  const head = el('div', 'progress-head');
+  const title = el('div', 'progress-title', 'Work completed');
+  title.id = 'progress-title';
+  const pctWrap = el('div', 'progress-pct');
+  const num = el('span', 'progress-num', '0');
+  pctWrap.append(num, '%');
+  head.append(title, pctWrap);
 
-  statsEl.replaceChildren(
-    ...data.map((d) => {
-      const box = el('div', 'stat');
-      const value = el('div', 'stat-value', '0');
-      value.dataset.target = d.value;
-      box.append(value, el('div', 'stat-label', d.label));
-      return box;
-    })
-  );
+  const track = el('div', 'progress-track');
+  track.setAttribute('role', 'progressbar');
+  track.setAttribute('aria-labelledby', 'progress-title');
+  track.setAttribute('aria-valuemin', '0');
+  track.setAttribute('aria-valuemax', '100');
+  track.setAttribute('aria-valuenow', String(pct));
+  track.setAttribute('aria-valuetext', `${pct} percent, ${done} of ${total} projects complete`);
+  const fill = el('div', 'progress-fill');
+  track.appendChild(fill);
 
-  const statObserver = new IntersectionObserver(
+  const parts = [total ? `${done} of ${total} projects complete` : 'No projects yet'];
+  if (active) parts.push(`${active} in progress`);
+  if (planned) parts.push(`${planned} planned`);
+  const caption = el('div', 'progress-caption', parts.join(' \u00b7 '));
+
+  progressEl.replaceChildren(head, track, caption);
+
+  // Fill and count once the bar scrolls into view, so the animation is seen rather than missed.
+  const observer = new IntersectionObserver(
     (entries) => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        countUp(entry.target, Number(entry.target.dataset.target));
-        statObserver.unobserve(entry.target);
-      }
+      if (!entries.some((e) => e.isIntersecting)) return;
+      fill.style.width = `${pct}%`;
+      countUp(num, pct);
+      observer.disconnect();
     },
-    { threshold: 0.5 }
+    { threshold: 0.6 }
   );
-  statsEl.querySelectorAll('.stat-value').forEach((n) => statObserver.observe(n));
+  observer.observe(progressEl);
 }
 
 /* ============================================================
@@ -549,7 +567,7 @@ document.addEventListener('keydown', (e) => {
 addBtn.addEventListener('click', () => openForm(null));
 
 function refreshAll() {
-  renderStats();
+  renderProgress();
   render();
 }
 
@@ -618,7 +636,7 @@ fetch(`projects.json?v=${Date.now()}`)
     if (!Array.isArray(data)) throw new Error('projects.json must contain a list');
     projects = data.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     addBtn.hidden = !IS_LOCAL;
-    renderStats();
+    renderProgress();
     restoreStateFromUrl();
     render();
     observeReveals();
