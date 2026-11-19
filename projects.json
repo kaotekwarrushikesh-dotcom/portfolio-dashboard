@@ -1,5 +1,36 @@
 [
   {
+    "title": "Irish Tax Relief Roadmap",
+    "description": "A web app that tells international students and PAYE workers in Ireland which tax reliefs they may be owed, then walks them through claiming each one in Revenue's own system. It covers the Rent Tax Credit, tuition fee relief and PAYE overpayment review for tax years 2022 to 2027. It is guidance, not filing: it never asks for Revenue credentials, never files anything and never promises a refund. Live today as an MVP on Cloudflare Pages and Render, with 106 automated tests.",
+    "tags": [
+      "Finance",
+      "Tax",
+      "Python",
+      "FastAPI",
+      "React",
+      "TypeScript",
+      "Rules Engine",
+      "Supabase"
+    ],
+    "repo": "",
+    "demo": "https://irish-tax-refund.pages.dev",
+    "status": "in progress",
+    "date": "2026-11-16",
+    "highlights": [
+      "The tax rules are data, not code. Each relief is a YAML file of parameters, conditions, exclusions and uncertainties, and every statement in it carries the id of the official Revenue page it came from. The loader refuses to start if a source id is missing from the 29-entry source registry, and a test checks every URL is on revenue.ie or ros.ie. A wrong rule becomes a one-line, reviewable change with a citation attached instead of logic buried in an if-statement, which matters because the people best placed to review tax wording are tax professionals, not programmers.",
+      "Eligibility is deterministic and checks itself against its own data. Every condition in a YAML file maps to a check in the matching Python module, and the engine raises an error if the two drift apart, so a rule cannot be edited in one place and quietly ignored in the other. Results use five status labels and report why a relief was flagged and what information is still missing, rather than returning a bare yes or no.",
+      "It refuses to promise money. The Rent Tax Credit is the lowest of 20% of rent, 20% of the specified amount, or the Income Tax actually due, so a student who pays little tax gets far less than the headline figure. The app therefore shows amounts as upper bounds, and the PAYE review never estimates a refund at all, because that number depends on payroll data the app cannot see.",
+      "Rules expire. Every relief carries a last-verified date and a review window. A rule past its window shows up on the rules-status endpoint, raises a warning on the user's results and fails a test, so stale tax guidance cannot ship without someone noticing. A link-checker script confirms each official source still loads. The four-year claim limit is built in too: the app flags which earlier years are still claimable and when each one closes.",
+      "A screen-by-screen claim pathway for the Rent Tax Credit, built from Revenue's own technical manuals rather than from guesswork. For each myAccount screen it says what Revenue is asking, which answer fits what the user told the app, and what to type, with their own answers filled into the text. Where their answers do not decide a choice, nothing is pre-selected and they pick for themselves, because a wrong default on a tax return is worse than one extra click. It also says plainly that Revenue changes its screens and to follow the live screen if it differs.",
+      "Privacy by construction. Without an account the API is stateless and nothing is stored server-side: answers sit in the browser's sessionStorage and vanish when the tab closes. Logs record only method, path, status and timing, and a test submits a distinctive amount, a file name and file contents and asserts none of them ever reach the logs. FastAPI's default validation error echoes the submitted values back to the client, so that handler is replaced, with a test that the replacement does not echo them.",
+      "Optional accounts on Supabase, with Row Level Security restricting every table to the owner's rows, column checks capping field sizes, consent recorded before anything is stored, and self-service export and delete. Google sign-in is the main method because the free tier's built-in email is limited to a couple of messages an hour, which would lock out new users. The whole feature stays hidden until the project's keys are configured, so the app falls back to fully anonymous instead of breaking. The account tests run against a mocked Supabase client.",
+      "The AI explainer is optional and grounded. With no API key the whole app is rule based. With one, the model is sent the rule data and the engine's result, never the user's raw answers, and any citation it returns is filtered down to known source ids, so it cannot cite a page that is not in the registry. Covered by unit tests against a fake client.",
+      "Hardened for a free-tier stack: per-client rate limits (120 requests a minute, 10 for the AI helper and uploads), a 64 KB cap on request bodies, a request id on every response and error so a user can quote it without sharing personal data, security headers on both the API and the Cloudflare frontend, a self-hosted font so no visitor IP goes to Google, and a scheduled GitHub Action that pings Supabase every three days so the free project is never paused for inactivity.",
+      "Tested at both ends and deployed from main. 67 backend tests (scenarios covering the eligibility cases, the rules and sources, the API, privacy behaviour and the pathway) and 39 frontend tests, all passing. A push to main deploys the React frontend to Cloudflare Pages and the FastAPI backend to Render.",
+      "The known gaps are written down rather than hidden. No GDPR assessment has been done, the rule wording has not yet been reviewed by a qualified Irish tax adviser, document upload is a validated scaffold with no extraction behind it, and the frontend has no Content-Security-Policy yet. The security notes list these as the gate before any public launch, which is why this is marked in progress rather than complete."
+    ]
+  },
+  {
     "title": "Financial Statement Intelligence Engine",
     "description": "Type a company name, get its financial health, in any market: US, Europe, India, Japan. US listings use 10 years of SEC EDGAR filings; everywhere else uses Yahoo Finance. Every company is now scored twice, against fixed thresholds and by percentile against its sector peers, and where the two readings disagree the disagreement is the output. Also runs as a 20-company batch producing a 23-page report.",
     "tags": [
